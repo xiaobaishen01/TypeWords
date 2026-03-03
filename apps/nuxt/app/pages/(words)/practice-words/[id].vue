@@ -179,8 +179,10 @@ watchOnce(
 useStartKeyboardEventListener()
 useDisableEventListener(() => loading)
 
+let isIniting = ref(true)
 function initData(initVal: TaskWords, init: boolean = false) {
-  // debugger
+  isIniting.value = true
+  debugger
   let d = getPracticeWordCache()
   //只有初始化时，才读取缓存
   if (d && init) {
@@ -246,7 +248,6 @@ function initData(initVal: TaskWords, init: boolean = false) {
     statStore.spend = 0
     data.isTypingWrongWord = false
 
-    //因为有时要从缓存里面读数据，这时的状态、进度保持原样，所以只能惰性监听，所以没缓存时主动调用一个，以更新为符合当前进度的状态、模式
     watchStage(statStore.stage)
     watchPracticeType(settingStore.wordPracticeType)
   }
@@ -256,6 +257,7 @@ function initData(initVal: TaskWords, init: boolean = false) {
       statStore.spend += 1000
     }
   }, 1000)
+  isIniting.value = false
 }
 
 const word = $computed<Word>(() => {
@@ -268,6 +270,8 @@ const nextWord: Word = $computed(() => {
   return data.words?.[data.index + 1] ?? undefined
 })
 
+//因为有时要从缓存里面读数据，这时的状态、进度保持原样，所以只能惰性监听，所以没缓存时主动调用一个，以更新为符合当前进度的状态、模式
+//比如，每个阶段都有错误复习这个流程，当正在错词复习时，如果执行state监听，就可能恢复成stage默认的配置项（模式、dictation、translate）
 function watchStage(n: WordPracticeStage) {
   switch (n) {
     case WordPracticeStage.DictationNewWord:
@@ -313,20 +317,12 @@ function watchPracticeType(n: WordPracticeType) {
   }
 }
 
-//因为有时要从缓存里面读数据，这时的状态、进度保持原样，所以只能惰性监听，所以没缓存时主动调用一个，以更新为符合当前进度的状态、模式
-watch(
-  () => statStore.stage,
-  (n: WordPracticeStage) => {
-    watchStage(n)
+watch(isIniting, ready => {
+  if (!ready) {
+    watch(() => statStore.stage, watchStage)
+    watch(() => settingStore.wordPracticeType, watchPracticeType)
   }
-)
-
-watch(
-  () => settingStore.wordPracticeType,
-  (n: WordPracticeType) => {
-    watchPracticeType(n)
-  }
-)
+})
 
 const groupSize = 7
 

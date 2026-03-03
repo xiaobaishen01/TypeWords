@@ -100,7 +100,7 @@ export function useInit() {
     unsub2?.()
     unsub2 = settingStore.$subscribe((mutation, state) => {
       if (isInitializing) return
-      // console.log('settingStore.$subscribe', mutation, state,isInitializing)
+      console.log('settingStore.$subscribe', mutation, state,isInitializing)
 
       set(SAVE_SETTING_KEY.key, JSON.stringify({ val: state, version: SAVE_SETTING_KEY.version }))
       const updated_at = new Date().toISOString() // 转换为 ISO 8601 格式
