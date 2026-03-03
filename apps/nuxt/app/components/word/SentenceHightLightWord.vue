@@ -21,23 +21,40 @@ const highlightedText = computed(() => {
     return props.text
   }
 
-  // 创建正则表达式，不区分大小写，匹配整个单词
-  const regex = new RegExp(`\\b${escapeRegExp(props.word)}\\b`, 'gi')
+  const classNames = [props.highLight ? 'highlight-word' : '', props.dictation ? 'word-shadow' : '']
+    .filter(Boolean)
+    .join(' ')
+  const wrap = (match: string) => `<span class="${classNames}">${match}</span>`
 
-  // 将匹配的单词用span标签包裹
-  return props.text.replace(regex, match => {
-    return `<span class="${props.highLight && 'highlight-word'} ${props.dictation && 'word-shadow'}">${match}</span>`
-  })
+  // 合并单词本体和常见变形匹配，避免漏判。
+  return getWordRegexes(props.word).reduce((result, regex) => result.replace(regex, wrap), props.text)
 })
 
 // 转义正则表达式特殊字符
 function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
+
+function getWordRegexes(word: string): RegExp[] {
+  const normalized = word.trim().toLowerCase()
+  if (!normalized) {
+    return []
+  }
+  const escaped = escapeRegExp(normalized)
+  const patterns = [
+    `\\b${escaped}\\b`,
+    `\\b${escaped}s\\b`,
+    `\\b${escaped}es\\b`,
+    `\\b${escaped}ed\\b`,
+    `\\b${escaped}ing\\b`,
+  ]
+  const uniquePatterns = Array.from(new Set(patterns))
+  return uniquePatterns.map(pattern => new RegExp(pattern, 'gi'))
+}
 </script>
 
 <template>
-  <div v-html="highlightedText"></div>
+  <span v-html="highlightedText"></span>
 </template>
 
 <style scoped lang="scss">

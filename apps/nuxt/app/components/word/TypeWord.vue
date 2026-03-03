@@ -45,7 +45,7 @@ let inputLock = false
 let wordRepeatCount = 0
 // 记录单词完成的时间戳，用于防止同时按下最后一个字母和空格键时跳过单词
 let wordCompletedTime = 0
-let jumpTimer = -1
+let jumpTimer: ReturnType<typeof setTimeout> | null = null
 let cursor = $ref({
   top: 0,
   left: 0,
@@ -83,6 +83,7 @@ function updateCurrentWordInfo() {
 watch(() => props.word, reset, { deep: true })
 
 function reset() {
+  clearJumpTimer()
   wrong = input = ''
   wordRepeatCount = 0
   showWordResult.value = inputLock = false
@@ -116,9 +117,18 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  emitter.off(EventKey.resetWord)
+  clearJumpTimer()
+  emitter.off(EventKey.resetWord, reset)
   emitter.off(EventKey.onTyping, onTyping)
 })
+
+function clearJumpTimer() {
+  if (!jumpTimer) {
+    return
+  }
+  clearTimeout(jumpTimer)
+  jumpTimer = null
+}
 
 function repeat() {
   setTimeout(() => {
@@ -202,7 +212,7 @@ async function onTyping(e: KeyboardEvent) {
     if (e.code === 'Space') {
       //正确时就切换到下一个
       if (right) {
-        clearInterval(jumpTimer)
+        clearJumpTimer()
         // 如果单词刚完成（300ms内），忽略空格键，避免同时按下最后一个字母和空格键时跳过
         if (wordCompletedTime && Date.now() - wordCompletedTime < 300) {
           return
@@ -386,6 +396,7 @@ function completeTypeWord(delay: boolean) {
     repeat()
   } else {
     if (delay) {
+      clearJumpTimer()
       jumpTimer = setTimeout(() => emit('complete'), settingStore.waitTimeForChangeWord)
     } else {
       emit('complete')
@@ -444,35 +455,6 @@ function mouseleave() {
   }, 50)
 }
 
-// 在释义中隐藏单词本身及其变形
-function hideWordInTranslation(text: string, word: string): string {
-  if (!text || !word) {
-    return text
-  }
-
-  // 创建正则表达式，匹配单词本身及其常见变形（如复数、过去式等）
-  const wordBase = word.toLowerCase()
-  const patterns = [
-    `\\b${escapeRegExp(wordBase)}\\b`, // 单词本身
-    `\\b${escapeRegExp(wordBase)}s\\b`, // 复数形式
-    `\\b${escapeRegExp(wordBase)}es\\b`, // 复数形式
-    `\\b${escapeRegExp(wordBase)}ed\\b`, // 过去式
-    `\\b${escapeRegExp(wordBase)}ing\\b`, // 进行时
-  ]
-
-  let result = text
-  patterns.forEach(pattern => {
-    const regex = new RegExp(pattern, 'gi')
-    result = result.replace(regex, match => `<span class="word-shadow">${match}</span>`)
-  })
-
-  return result
-}
-
-// 转义正则表达式特殊字符
-function escapeRegExp(string: string): string {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
 
 watch([() => input, () => showFullWord, () => settingStore.dictation], checkCursorPosition)
 
@@ -488,7 +470,7 @@ function checkCursorPosition() {
     // 选中目标元素
     const cursorEl = document.querySelector(`.cursor`)
     const inputList = document.querySelectorAll(`.l`)
-    if (!typingWordRef) return
+    if (!typingWordRef || !cursorEl) return
     const typingWordRect = typingWordRef.getBoundingClientRect()
 
     if (inputList.length) {
@@ -711,7 +693,7 @@ const isCollect = $computed(() => isWordCollect(props.word))
             {{ v.pos }}
           </div>
           <span v-if="!settingStore.dictation || showWordResult || showFullWord">{{ v.cn }}</span>
-          <span v-else v-html="hideWordInTranslation(v.cn, word.word)"></span>
+          <SentenceHightLightWord v-else :text="v.cn" :word="word.word" :dictation="true" :high-light="false" />
         </div>
       </div>
     </div>
