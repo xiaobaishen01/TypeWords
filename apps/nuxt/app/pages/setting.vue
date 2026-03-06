@@ -212,27 +212,31 @@ function importJson(str: string, notice: boolean = true) {
     let baseState = checkAndUpgradeSaveDict(data.dict)
     baseState.load = true
     store.setState(baseState)
-    wordPersistence.clear()
-    articlePersistence.clear()
     if (obj.version >= 4) {
       try {
-        let save: any = obj.val[PRACTICE_WORD_CACHE.key] || {}
+        let save: any = obj?.val?.[PRACTICE_WORD_CACHE.key] || {}
         if (save.val && Object.keys(save.val).length > 0) {
-          localStorage.setItem(PRACTICE_WORD_CACHE.key, JSON.stringify(obj.val[PRACTICE_WORD_CACHE.key]))
+          wordPersistence.save(save.val)
+        } else {
+          wordPersistence.clear()
         }
       } catch (e) {
         //todo 上报
+        wordPersistence.clear()
       }
       try {
-        let save: any = obj.val[PRACTICE_ARTICLE_CACHE.key] || {}
+        let save: any = obj?.val?.[PRACTICE_ARTICLE_CACHE.key] || {}
         if (save.val && Object.keys(save.val).length > 0) {
-          localStorage.setItem(PRACTICE_ARTICLE_CACHE.key, JSON.stringify(obj.val[PRACTICE_ARTICLE_CACHE.key]))
+          articlePersistence.save(save.val)
+        } else {
+          articlePersistence.clear()
         }
       } catch (e) {
         //todo 上报
+        articlePersistence.clear()
       }
       try {
-        let r: any = obj.val[APP_VERSION.key] || -1
+        let r: any = obj?.val?.[APP_VERSION.key] || -1
         set(APP_VERSION.key, r)
         runtimeStore.isNew = r ? APP_VERSION.version > Number(r) : true
       } catch (e) {
@@ -359,13 +363,11 @@ function saveSbConfig() {
 
       try {
         // 检测 data 表是否存在
-        const { error: checkError } = await supabase.from('typewords_data').select('id').limit(1)
-
+        const { data: existingData, error: checkError } = await supabase.from('typewords_data').select('type')
         if (checkError) {
           Toast.error('表不存在')
         } else {
           // 表已存在，检测是否需要插入默认数据
-          const { data: existingData } = await supabase.from('typewords_data').select('type')
           const existingTypes = existingData?.map(d => d.type) || []
 
           const defaultData = [
@@ -569,15 +571,14 @@ function removeSbConfig() {
                 <FormItem label="Key" prop="key">
                   <BaseInput v-model="sbForm.key" />
                 </FormItem>
-<!--                <FormItem label="创建表语句">-->
-<!--                  <span>-->
-<!--                    
-                        CREATE TABLE IF NOT EXISTS typewords_data ( id SERIAL PRIMARY KEY, data JSONB, type TEXT UNIQUE NOT
-                        NULL, updated_at TIMESTAMPTZ DEFAULT now() ); INSERT INTO typewords_data (type, data) VALUES
-                        ('word', '{}'), ('setting', '{}'), ('cache', '{}') ON CONFLICT (type) DO NOTHING;
--->
-<!--                  </span>-->
-<!--                </FormItem>-->
+                <FormItem label="创建表语句">
+                  <span>
+                    CREATE TABLE IF NOT EXISTS typewords_data ( id SERIAL PRIMARY KEY, data JSONB,data_version string,
+                    type TEXT UNIQUE NOT NULL, updated_at TIMESTAMPTZ DEFAULT now() ); INSERT INTO typewords_data (type,
+                    data) VALUES ('word', '{}'), ('setting', '{}'), ('practice_word', '{}') ,('practice_article', '{}')
+                    ON CONFLICT (type) DO NOTHING;
+                  </span>
+                </FormItem>
               </Form>
               <div class="flex justify-end">
                 <BaseButton @click="removeSbConfig">删除配置</BaseButton>

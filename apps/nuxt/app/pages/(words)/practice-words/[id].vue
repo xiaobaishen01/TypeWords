@@ -754,7 +754,7 @@ watch(isIniting, n => {
       watch(
         () => statStore.spend,
         curr => {
-          if (curr % (10 * 1000) === 0 && curr !== 0) {
+          if (curr % (30 * 1000) === 0 && curr !== 0) {
             savePracticeData('spend')
           }
         }

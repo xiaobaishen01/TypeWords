@@ -666,7 +666,7 @@ const isCollect = $computed(() => isWordCollect(props.word))
           :keyboard="`${$t('shortcut')}(${settingStore.shortcutKeyMap[ShortcutKey.MasteredWord]})`"
           size="large"
           @click="mastered"
-          >已掌握
+          >非常熟悉
         </BaseButton>
       </div>
 

@@ -16,6 +16,7 @@ import { useBaseStore } from '@/stores/base'
 import { useSettingStore } from '@/stores/setting'
 import { ref } from 'vue'
 import { PRACTICE_ARTICLE_CACHE, PRACTICE_WORD_CACHE } from '@/utils/cache'
+import { usePracticeArticlePersistence, usePracticeWordPersistence } from '~/composables/usePracticePersistence.ts'
 
 export function useExport() {
   const store = useBaseStore()
@@ -29,9 +30,13 @@ export function useExport() {
   ) {
     if (loading.value) return
     loading.value = true
+
+    const wordPersistence = usePracticeWordPersistence()
+    const articlePersistence = usePracticeArticlePersistence()
+
     try {
       const JSZip = await loadJsLib('JSZip', LIB_JS_URL.JSZIP)
-      let data = {
+      let data:any = {
         version: EXPORT_DATA_KEY.version,
         val: {
           setting: {
@@ -53,16 +58,16 @@ export function useExport() {
           [APP_VERSION.key]: -1,
         },
       }
-      let d = localStorage.getItem(PRACTICE_WORD_CACHE.key)
+      let d = await wordPersistence.load()
       if (d) {
         try {
-          data.val[PRACTICE_WORD_CACHE.key] = JSON.parse(d)
+          data.val[PRACTICE_WORD_CACHE.key].val = d
         } catch (e) {}
       }
-      let d1 = localStorage.getItem(PRACTICE_ARTICLE_CACHE.key)
+      let d1 = await articlePersistence.load()
       if (d1) {
         try {
-          data.val[PRACTICE_ARTICLE_CACHE.key] = JSON.parse(d1)
+          data.val[PRACTICE_ARTICLE_CACHE.key].val = d1
         } catch (e) {}
       }
       let r = await get(APP_VERSION.key)

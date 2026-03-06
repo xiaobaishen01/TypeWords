@@ -5,45 +5,202 @@ import { useUserStore } from '~/stores/user.ts'
 import { syncSetting } from '~/apis'
 import { get, set } from 'idb-keyval'
 import { AppEnv, DictId } from '~/config/env.ts'
-import { _getDictDataByUrl, shakeCommonDict } from '@/utils/index.ts'
+import {
+  _getDictDataByUrl,
+  checkAndUpgradeSaveDict,
+  checkAndUpgradeSaveSetting,
+  shakeCommonDict,
+} from '@/utils/index.ts'
 import { APP_VERSION, LOCAL_FILE_KEY, SAVE_DICT_KEY, SAVE_SETTING_KEY } from '@/config/env.ts'
 import { Supabase } from '~/utils/supabase.ts'
+import { compareTimestamps, parseTimestamp } from '@/utils/sync'
 import type { Word } from '~/types/types.ts'
 import { DictType } from '~/types/enum.ts'
 
 let unsub = null
 let unsub2 = null
 
+type SyncType = 'setting' | 'dict'
+
+type RemoteMetaRow = {
+  type: SyncType
+  updated_at?: string
+  data_version?: number
+}
+
+type RemoteDataRow = RemoteMetaRow & {
+  data: unknown
+}
+
+function hasMissingDataVersionColumn(error: { message?: string } | null): boolean {
+  return !!error?.message?.includes('data_version')
+}
+
+function getDataVersion(type: SyncType): number {
+  return type === 'dict' ? SAVE_DICT_KEY.version : SAVE_SETTING_KEY.version
+}
+
+function getLocalKey(type: SyncType): string {
+  return type === 'dict' ? SAVE_DICT_KEY.key : SAVE_SETTING_KEY.key
+}
+
+function isCompatibleVersion(remoteVersion: number | undefined, currentVersion: number): boolean {
+  return remoteVersion == null || remoteVersion <= currentVersion
+}
+
+async function getLocalPersistMeta(type: SyncType): Promise<{ updated_at?: string; version?: number }> {
+  const raw = await get(getLocalKey(type))
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+    return {
+      updated_at: typeof parsed?.updated_at === 'string' ? parsed.updated_at : undefined,
+      version: typeof parsed?.version === 'number' ? parsed.version : undefined,
+    }
+  } catch {
+    return {}
+  }
+}
+
+async function persistLocalState(type: SyncType, val: unknown, updated_at?: string): Promise<void> {
+  await set(
+    getLocalKey(type),
+    JSON.stringify({
+      val,
+      version: getDataVersion(type),
+      updated_at,
+    })
+  )
+}
+
+async function fetchServerMeta(): Promise<RemoteMetaRow[]> {
+  if (!Supabase.check()) return []
+  const { data, error } = await Supabase.getInstance()
+    .from('typewords_data')
+    .select('type, updated_at, data_version')
+    .in('type', ['setting', 'dict'])
+  if (error && hasMissingDataVersionColumn(error)) {
+    const { data: fallbackData } = await Supabase.getInstance()
+      .from('typewords_data')
+      .select('type, updated_at')
+      .in('type', ['setting', 'dict'])
+    return (fallbackData ?? []) as RemoteMetaRow[]
+  }
+  return (data ?? []) as RemoteMetaRow[]
+}
+
+async function fetchServerData(type: SyncType): Promise<RemoteDataRow | null> {
+  if (!Supabase.check()) return null
+  const { data, error } = await Supabase.getInstance()
+    .from('typewords_data')
+    .select('type, data, updated_at, data_version')
+    .eq('type', type)
+    .maybeSingle()
+  if (error && hasMissingDataVersionColumn(error)) {
+    const { data: fallbackData } = await Supabase.getInstance()
+      .from('typewords_data')
+      .select('type, data, updated_at')
+      .eq('type', type)
+      .maybeSingle()
+    return (fallbackData ?? null) as RemoteDataRow | null
+  }
+  return data as RemoteDataRow | null
+}
+
+async function upsertServerData(type: SyncType, data: unknown, updated_at: string): Promise<void> {
+  if (!Supabase.check()) return
+  const data_version = getDataVersion(type)
+  const { error } = await Supabase.getInstance()
+    .from('typewords_data')
+    .upsert({ type, data, updated_at, data_version }, { onConflict: 'type' })
+  if (error && hasMissingDataVersionColumn(error)) {
+    await Supabase.getInstance().from('typewords_data').upsert({ type, data, updated_at }, { onConflict: 'type' })
+  }
+}
+
+function applyDictData(store: ReturnType<typeof useBaseStore>, data: unknown) {
+  store.setState(data as any)
+  //todo 这里想办法优化，会重复加载
+  if (store.word.studyIndex >= 3) {
+    if (!store.sdict.custom && !store.sdict.words.length) {
+      _getDictDataByUrl(store.sdict).then(r => {
+        store.word.bookList[store.word.studyIndex] = r
+      })
+    }
+  }
+  if (store.article.studyIndex >= 1) {
+    if (!store.sbook.custom && !store.sbook.articles.length) {
+      _getDictDataByUrl(store.sbook, DictType.article).then(r => {
+        store.article.bookList[store.article.studyIndex] = r
+      })
+    }
+  }
+}
+
 async function getServerData() {
   const store = useBaseStore()
   const settingStore = useSettingStore()
 
-  if (Supabase.check()) {
-    const { data } = await Supabase.getInstance()?.from('typewords_data').select().in('type', ['setting', 'dict'])
-    if (data?.length) {
-      data.map(v => {
-        if (v.type === 'setting') {
-          settingStore.setState(v.data)
+  const remoteMetas = await fetchServerMeta()
+  const remoteMetaMap = new Map(remoteMetas.map(item => [item.type, item]))
+  const syncTypes: SyncType[] = ['setting', 'dict']
+
+  for (const type of syncTypes) {
+    const remoteMeta = remoteMetaMap.get(type)
+    const currentVersion = getDataVersion(type)
+    const localMeta = await getLocalPersistMeta(type)
+    const compareResult = compareTimestamps(localMeta.updated_at, remoteMeta?.updated_at)
+
+    if (!remoteMeta) {
+      const updated_at = localMeta.updated_at ?? new Date().toISOString()
+      if (type === 'setting') {
+        void persistLocalState('setting', settingStore.$state, updated_at)
+        void upsertServerData('setting', settingStore.$state, updated_at)
+      } else {
+        const data = shakeCommonDict(store.$state)
+        void persistLocalState('dict', data, updated_at)
+        void upsertServerData('dict', data, updated_at)
+      }
+      continue
+    }
+
+    if (isCompatibleVersion(remoteMeta.data_version, currentVersion)) {
+      const shouldFetchRemote
+        = (!localMeta.updated_at && parseTimestamp(remoteMeta.updated_at) != null)
+          || compareResult === 'remote_newer'
+
+      if (shouldFetchRemote) {
+        const remoteData = await fetchServerData(type)
+        if (!remoteData) continue
+
+        if (type === 'setting') {
+          const normalized = checkAndUpgradeSaveSetting({
+            val: remoteData.data,
+            version: remoteData.data_version ?? currentVersion,
+          })
+          settingStore.setState(normalized)
+          await persistLocalState('setting', normalized, remoteData.updated_at)
+        } else {
+          const normalized = checkAndUpgradeSaveDict({
+            val: remoteData.data,
+            version: remoteData.data_version ?? currentVersion,
+          })
+          applyDictData(store, normalized)
+          await persistLocalState('dict', normalized, remoteData.updated_at)
         }
-        if (v.type === 'dict') {
-          store.setState(v.data)
-          //todo 这里想办法优化，会重复加载
-          if (store.word.studyIndex >= 3) {
-            if (!store.sdict.custom && !store.sdict.words.length) {
-              _getDictDataByUrl(store.sdict).then(r => {
-                store.word.bookList[store.word.studyIndex] = r
-              })
-            }
-          }
-          if (store.article.studyIndex >= 1) {
-            if (!store.sbook.custom && !store.sbook.articles.length) {
-              _getDictDataByUrl(store.sbook, DictType.article).then(r => {
-                store.article.bookList[store.article.studyIndex] = r
-              })
-            }
-          }
-        }
-      })
+        continue
+      }
+    }
+
+    if (compareResult === 'equal' || compareResult === 'unknown') {
+      continue
+    }
+
+    if (localMeta.updated_at && compareResult === 'local_newer') {
+      if (type === 'setting') {
+        void upsertServerData('setting', settingStore.$state, localMeta.updated_at)
+      } else {
+        void upsertServerData('dict', shakeCommonDict(store.$state), localMeta.updated_at)
+      }
     }
   }
 }
@@ -86,12 +243,9 @@ export function useInit() {
         if (isInitializing) return
         // console.log('store.$subscribe', mutation, n)
         let data = shakeCommonDict(n)
-        set(SAVE_DICT_KEY.key, JSON.stringify({ val: data, version: SAVE_DICT_KEY.version }))
-        const updated_at = new Date().toISOString() // 转换为 ISO 8601 格式
-        Supabase.getInstance()
-          .from('typewords_data')
-          .upsert({ data, type: 'dict', updated_at }, { onConflict: 'type' })
-          .then()
+        const updated_at = new Date().toISOString()
+        void persistLocalState('dict', data, updated_at)
+        void upsertServerData('dict', data, updated_at)
 
         //筛选自定义和收藏
         let bookList = data.article.bookList.filter(v => v.custom || [DictId.articleCollect].includes(v.id))
@@ -128,12 +282,9 @@ export function useInit() {
         if (isInitializing) return
         // console.log('settingStore.$subscribe', mutation, state, isInitializing)
 
-        set(SAVE_SETTING_KEY.key, JSON.stringify({ val: state, version: SAVE_SETTING_KEY.version }))
-        const updated_at = new Date().toISOString() // 转换为 ISO 8601 格式
-        Supabase.getInstance()
-          .from('typewords_data')
-          .upsert({ data: state, type: 'setting', updated_at }, { onConflict: 'type' })
-          .then()
+        const updated_at = new Date().toISOString()
+        void persistLocalState('setting', state, updated_at)
+        void upsertServerData('setting', state, updated_at)
         if (AppEnv.CAN_REQUEST) {
           syncSetting(null, settingStore.$state)
         }
