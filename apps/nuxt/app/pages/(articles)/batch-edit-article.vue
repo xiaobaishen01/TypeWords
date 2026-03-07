@@ -17,10 +17,6 @@ import { onMounted } from 'vue'
 import { LIB_JS_URL } from '@/config/env.ts'
 import { syncBookInMyStudyList } from '@/hooks/article.ts'
 
-definePageMeta({
-  layout: 'empty',
-})
-
 const runtimeStore = useRuntimeStore()
 
 let article = $ref<Article>(getDefaultArticle())

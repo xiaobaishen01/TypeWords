@@ -44,8 +44,9 @@ function getLocalKey(type: SyncType): string {
   return type === 'dict' ? SAVE_DICT_KEY.key : SAVE_SETTING_KEY.key
 }
 
+/** 远程有版本且不大于当前版本才视为兼容；远程无版本则视为旧数据，不兼容 */
 function isCompatibleVersion(remoteVersion: number | undefined, currentVersion: number): boolean {
-  return remoteVersion == null || remoteVersion <= currentVersion
+  return remoteVersion != null && remoteVersion <= currentVersion
 }
 
 async function getLocalPersistMeta(type: SyncType): Promise<{ updated_at?: string; version?: number }> {
@@ -109,11 +110,22 @@ async function fetchServerData(type: SyncType): Promise<RemoteDataRow | null> {
 async function upsertServerData(type: SyncType, data: unknown, updated_at: string): Promise<void> {
   if (!Supabase.check()) return
   const data_version = getDataVersion(type)
-  const { error } = await Supabase.getInstance()
-    .from('typewords_data')
-    .upsert({ type, data, updated_at, data_version }, { onConflict: 'type' })
-  if (error && hasMissingDataVersionColumn(error)) {
-    await Supabase.getInstance().from('typewords_data').upsert({ type, data, updated_at }, { onConflict: 'type' })
+  try {
+    const client = Supabase.getInstance() as any
+    const { error } = await client.from('typewords_data').upsert({ type, data, updated_at, data_version }, { onConflict: 'type' })
+    if (error && hasMissingDataVersionColumn(error)) {
+      const { error: fallbackError } = await client.from('typewords_data').upsert({ type, data, updated_at }, { onConflict: 'type' })
+      if (fallbackError) {
+        Supabase.setStatus('error', fallbackError?.message ?? String(fallbackError))
+        return
+      }
+    } else if (error) {
+      Supabase.setStatus('error', error?.message ?? String(error))
+      return
+    }
+    Supabase.setStatus('success')
+  } catch (e) {
+    Supabase.setStatus('error', (e as Error)?.message ?? String(e))
   }
 }
 
@@ -137,71 +149,76 @@ function applyDictData(store: ReturnType<typeof useBaseStore>, data: unknown) {
 }
 
 async function getServerData() {
+  if (!Supabase.check()) return
   const store = useBaseStore()
   const settingStore = useSettingStore()
+  try {
+    const remoteMetas = await fetchServerMeta()
+    const remoteMetaMap = new Map(remoteMetas.map(item => [item.type, item]))
+    const syncTypes: SyncType[] = ['setting', 'dict']
 
-  const remoteMetas = await fetchServerMeta()
-  const remoteMetaMap = new Map(remoteMetas.map(item => [item.type, item]))
-  const syncTypes: SyncType[] = ['setting', 'dict']
+    for (const type of syncTypes) {
+      const remoteMeta = remoteMetaMap.get(type)
+      const currentVersion = getDataVersion(type)
+      const localMeta = await getLocalPersistMeta(type)
+      const compareResult = compareTimestamps(localMeta.updated_at, remoteMeta?.updated_at)
 
-  for (const type of syncTypes) {
-    const remoteMeta = remoteMetaMap.get(type)
-    const currentVersion = getDataVersion(type)
-    const localMeta = await getLocalPersistMeta(type)
-    const compareResult = compareTimestamps(localMeta.updated_at, remoteMeta?.updated_at)
-
-    if (!remoteMeta) {
-      const updated_at = localMeta.updated_at ?? new Date().toISOString()
-      if (type === 'setting') {
-        void persistLocalState('setting', settingStore.$state, updated_at)
-        void upsertServerData('setting', settingStore.$state, updated_at)
-      } else {
-        const data = shakeCommonDict(store.$state)
-        void persistLocalState('dict', data, updated_at)
-        void upsertServerData('dict', data, updated_at)
-      }
-      continue
-    }
-
-    if (isCompatibleVersion(remoteMeta.data_version, currentVersion)) {
-      const shouldFetchRemote
-        = (!localMeta.updated_at && parseTimestamp(remoteMeta.updated_at) != null)
-          || compareResult === 'remote_newer'
-
-      if (shouldFetchRemote) {
-        const remoteData = await fetchServerData(type)
-        if (!remoteData) continue
-
+      if (!remoteMeta) {
+        const updated_at = localMeta.updated_at ?? new Date().toISOString()
         if (type === 'setting') {
-          const normalized = checkAndUpgradeSaveSetting({
-            val: remoteData.data,
-            version: remoteData.data_version ?? currentVersion,
-          })
-          settingStore.setState(normalized)
-          await persistLocalState('setting', normalized, remoteData.updated_at)
+          void persistLocalState('setting', settingStore.$state, updated_at)
+          void upsertServerData('setting', settingStore.$state, updated_at)
         } else {
-          const normalized = checkAndUpgradeSaveDict({
-            val: remoteData.data,
-            version: remoteData.data_version ?? currentVersion,
-          })
-          applyDictData(store, normalized)
-          await persistLocalState('dict', normalized, remoteData.updated_at)
+          const data = shakeCommonDict(store.$state)
+          void persistLocalState('dict', data, updated_at)
+          void upsertServerData('dict', data, updated_at)
         }
         continue
       }
-    }
 
-    if (compareResult === 'equal' || compareResult === 'unknown') {
-      continue
-    }
+      if (isCompatibleVersion(remoteMeta.data_version, currentVersion)) {
+        const shouldFetchRemote
+          = (!localMeta.updated_at && parseTimestamp(remoteMeta.updated_at) != null)
+            || compareResult === 'remote_newer'
 
-    if (localMeta.updated_at && compareResult === 'local_newer') {
-      if (type === 'setting') {
-        void upsertServerData('setting', settingStore.$state, localMeta.updated_at)
-      } else {
-        void upsertServerData('dict', shakeCommonDict(store.$state), localMeta.updated_at)
+        if (shouldFetchRemote) {
+          const remoteData = await fetchServerData(type)
+          if (!remoteData) continue
+
+          if (type === 'setting') {
+            const normalized = checkAndUpgradeSaveSetting({
+              val: remoteData.data,
+              version: remoteData.data_version ?? currentVersion,
+            })
+            settingStore.setState(normalized)
+            await persistLocalState('setting', normalized, remoteData.updated_at)
+          } else {
+            const normalized = checkAndUpgradeSaveDict({
+              val: remoteData.data,
+              version: remoteData.data_version ?? currentVersion,
+            })
+            applyDictData(store, normalized)
+            await persistLocalState('dict', normalized, remoteData.updated_at)
+          }
+          continue
+        }
+      }
+
+      if (compareResult === 'equal' || compareResult === 'unknown') {
+        continue
+      }
+
+      if (localMeta.updated_at && compareResult === 'local_newer') {
+        if (type === 'setting') {
+          void upsertServerData('setting', settingStore.$state, localMeta.updated_at)
+        } else {
+          void upsertServerData('dict', shakeCommonDict(store.$state), localMeta.updated_at)
+        }
       }
     }
+    Supabase.setStatus('success')
+  } catch (e) {
+    Supabase.setStatus('error', (e as Error)?.message ?? String(e))
   }
 }
 
@@ -241,7 +258,7 @@ export function useInit() {
       debounce((mutation, n) => {
         // 如果正在初始化，不保存数据，避免覆盖
         if (isInitializing) return
-        // console.log('store.$subscribe', mutation, n)
+        console.log('store.$subscribe', mutation, n)
         let data = shakeCommonDict(n)
         const updated_at = new Date().toISOString()
         void persistLocalState('dict', data, updated_at)

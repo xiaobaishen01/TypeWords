@@ -329,8 +329,7 @@ export function splitCNArticle2(text: string): string {
 
 export function usePlaySentenceAudio() {
   const playWordAudio = usePlayWordAudio()
-  const settingStore = useSettingStore()
-  let timer = $ref(0)
+  let timer = $ref<any>(0)
 
   function playSentenceAudio(sentence: Sentence, ref?: HTMLAudioElement) {
     if (sentence.audioPosition?.length && ref && ref.src) {

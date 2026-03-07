@@ -120,7 +120,7 @@ async function init() {
     if (d) {
       currentStudy = d.taskWords
       isSaveData = true
-      if (!currentStudy.new.length && !currentStudy.review.length) {
+      if (!currentStudy?.new.length && !currentStudy?.review.length) {
         isSaveData = false
         wordPersistence.clear()
         init()

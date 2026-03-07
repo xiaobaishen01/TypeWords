@@ -32,7 +32,7 @@ import { PRACTICE_ARTICLE_CACHE, PRACTICE_WORD_CACHE } from '@/utils/cache'
 import { usePracticeWordPersistence, usePracticeArticlePersistence } from '@/composables/usePracticePersistence'
 import SettingItem from '~/components/setting/SettingItem.vue'
 import Form, { type FormType } from '~/components/base/form/Form.vue'
-import { SUPABASE_KEY, SUPABASE_URL } from '~/utils/supabase.ts'
+import { Supabase } from '~/utils/supabase.ts'
 
 let route = useRoute()
 let title = APP_NAME + ' 设置'
@@ -337,10 +337,12 @@ function clearAllData() {
 }
 
 let sbFormRef = $ref<FormType>()
+const initialSbConfig = Supabase.getConfig()
 let sbForm = $ref({
-  url: localStorage.getItem(SUPABASE_URL) ?? '',
-  key: localStorage.getItem(SUPABASE_KEY) ?? '',
+  url: initialSbConfig?.url ?? '',
+  key: initialSbConfig?.key ?? '',
 })
+let sbStatus = $ref(Supabase.getStatus())
 
 let sbFormRules = {
   url: [{ required: true, message: '请输入 Supabase  Url', trigger: 'blur' }],
@@ -361,7 +363,7 @@ const canSyncToServe = $computed(() => {
         audioFileIdList.push(a.audioFileId)
       })
   })
-  return audioFileIdList.length > 0
+  return audioFileIdList.length === 0
 })
 
 let configLoading = $ref(false)
@@ -378,10 +380,13 @@ function saveSbConfig() {
         // 检测 typewords_data 表是否存在
         const { data: existingData, error: checkError } = await supabase.from('typewords_data').select('type')
         if (checkError) {
+          Supabase.setStatus('error', checkError?.message ?? '表不存在')
+          sbStatus = Supabase.getStatus()
           Toast.error('表不存在')
         } else {
           // 表已存在，检测是否需要插入默认数据
-          const existingTypes = existingData?.map(d => d.type) || []
+          const rows = (existingData ?? []) as { type: string }[]
+          const existingTypes = rows.map(d => d.type)
           const defaultData = [
             { type: 'dict', data: {} },
             { type: 'setting', data: {} },
@@ -390,14 +395,19 @@ function saveSbConfig() {
           ]
           for (const item of defaultData) {
             if (!existingTypes.includes(item.type)) {
-              await supabase.from('typewords_data').insert(item)
+              await (supabase as any).from('typewords_data').insert(item)
             }
           }
+          Supabase.setStatus('success')
+          sbStatus = Supabase.getStatus()
           Toast.success('保存成功')
           transferOk()
         }
       } catch (error) {
-        Toast.error('出现错误：' + error.message)
+        const msg = (error as Error)?.message ?? String(error)
+        Supabase.setStatus('error', msg)
+        sbStatus = Supabase.getStatus()
+        Toast.error('出现错误：' + msg)
       } finally {
         configLoading = false
       }
@@ -409,6 +419,7 @@ function removeSbConfig() {
   sbFormRef?.validate(async valid => {
     if (valid) {
       Supabase.removeConfig()
+      sbStatus = { status: 'idle', statusMessage: undefined }
       Toast.success('清除成功')
       setTimeout(() => {
         location.href = '/words'
@@ -480,6 +491,8 @@ function removeSbConfig() {
           <ArticleSetting v-if="tabIndex === 3" />
 
           <div v-if="tabIndex === 5">
+            <SettingItem mainTitle="数据管理" />
+
             <!--            导出数据-->
             <SettingItem
               title="导出数据"
@@ -529,12 +542,21 @@ function removeSbConfig() {
                 请注意，如果本地已有使用记录，请先备份当前数据，迁移数据后将<b class="text-red"> 完全覆盖 </b
                 >当前所有数据，请谨慎操作。
               </div>
+              <div class="line my-3"></div>
             </template>
 
+            <SettingItem mainTitle="数据同步" />
+
             <!--          Supabase 设置  -->
-            <div class="line my-3"></div>
             <div class="mt-3">
-              <SettingItem title="Supabase 设置" desc="网站不会上传您的 url 和 key，只保存在浏览器本地(Local storage)">
+              <SettingItem title="Supabase 配置" desc="网站不会上传您的 url 和 key，只保存在浏览器本地(Local storage)">
+                <div v-if="sbStatus.status !== 'idle'" class="mt-2 text-sm">
+                  <span v-if="sbStatus.status === 'success'">同步状态：成功</span>
+                  <span v-else-if="sbStatus.status === 'error'" class="text-red">
+                    同步状态：失败{{ sbStatus.statusMessage ? `（${sbStatus.statusMessage}）` : '' }}
+                  </span>
+                  <span v-else-if="sbStatus.status === 'syncing'">同步状态：同步中…</span>
+                </div>
               </SettingItem>
 
               <p>
@@ -542,19 +564,24 @@ function removeSbConfig() {
                 <a href="https://www.kdocs.cn/l/cduLx52XXXgw" target="_blank">https://www.kdocs.cn/l/cduLx52XXXgw</a>
               </p>
 
-              <Form ref="sbFormRef" :rules="sbFormRules" :model="sbForm">
-                <FormItem label="Url" prop="url">
-                  <BaseInput v-model="sbForm.url" />
-                </FormItem>
-                <FormItem label="Key" prop="key">
-                  <BaseInput v-model="sbForm.key" />
-                </FormItem>
-              </Form>
-              <div class="flex justify-end">
-                <BaseButton @click="removeSbConfig">删除配置</BaseButton>
-                <BaseButton
-                  keyboard="检测到自定义文章里面有自定义音频，无法使用同步功能"
-                  @click="saveSbConfig" :loading="configLoading" :disabled="true">保存配置</BaseButton>
+              <div class="relative">
+                <Form ref="sbFormRef" :rules="sbFormRules" :model="sbForm">
+                  <FormItem label="Url" prop="url">
+                    <BaseInput v-model="sbForm.url" />
+                  </FormItem>
+                  <FormItem label="Key" prop="key">
+                    <BaseInput v-model="sbForm.key" />
+                  </FormItem>
+                </Form>
+                <div class="flex justify-end">
+                  <BaseButton @click="removeSbConfig" :disabled="!canSyncToServe">删除配置</BaseButton>
+                  <BaseButton @click="saveSbConfig" :loading="configLoading" :disabled="!canSyncToServe"
+                    >保存配置</BaseButton
+                  >
+                </div>
+                <div class="absolute top-0 left-0 w-full h-full bg-white opacity-80 cursor-not-allowed z-10 center rounded-md" v-if="!canSyncToServe">
+                  <div class="text-red">检测到自定义文章里面有自定义音频，无法使用同步功能</div>
+                </div>
               </div>
             </div>
 
