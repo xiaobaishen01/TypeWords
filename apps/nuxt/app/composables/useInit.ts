@@ -13,7 +13,7 @@ import {
 } from '@/utils/index.ts'
 import { APP_VERSION, LOCAL_FILE_KEY, SAVE_DICT_KEY, SAVE_SETTING_KEY } from '@/config/env.ts'
 import { Supabase } from '~/utils/supabase.ts'
-import { compareTimestamps, parseTimestamp } from '@/utils/sync'
+import { compareTimestamps, parseTimestamp, shouldFetchRemote } from '@/utils/sync'
 import type { Word } from '~/types/types.ts'
 import { DictType } from '~/types/enum.ts'
 
@@ -32,21 +32,12 @@ type RemoteDataRow = RemoteMetaRow & {
   data: unknown
 }
 
-function hasMissingDataVersionColumn(error: { message?: string } | null): boolean {
-  return !!error?.message?.includes('data_version')
-}
-
 function getDataVersion(type: SyncType): number {
   return type === 'dict' ? SAVE_DICT_KEY.version : SAVE_SETTING_KEY.version
 }
 
 function getLocalKey(type: SyncType): string {
   return type === 'dict' ? SAVE_DICT_KEY.key : SAVE_SETTING_KEY.key
-}
-
-/** 远程有版本且不大于当前版本才视为兼容；远程无版本则视为旧数据，不兼容 */
-function isCompatibleVersion(remoteVersion: number | undefined, currentVersion: number): boolean {
-  return remoteVersion != null && remoteVersion <= currentVersion
 }
 
 async function getLocalPersistMeta(type: SyncType): Promise<{ updated_at?: string; version?: number }> {
@@ -79,12 +70,9 @@ async function fetchServerMeta(): Promise<RemoteMetaRow[]> {
     .from('typewords_data')
     .select('type, updated_at, data_version')
     .in('type', ['setting', 'dict'])
-  if (error && hasMissingDataVersionColumn(error)) {
-    const { data: fallbackData } = await Supabase.getInstance()
-      .from('typewords_data')
-      .select('type, updated_at')
-      .in('type', ['setting', 'dict'])
-    return (fallbackData ?? []) as RemoteMetaRow[]
+  if (error) {
+    Supabase.setStatus('error', error?.message ?? String(error))
+    return []
   }
   return (data ?? []) as RemoteMetaRow[]
 }
@@ -96,13 +84,9 @@ async function fetchServerData(type: SyncType): Promise<RemoteDataRow | null> {
     .select('type, data, updated_at, data_version')
     .eq('type', type)
     .maybeSingle()
-  if (error && hasMissingDataVersionColumn(error)) {
-    const { data: fallbackData } = await Supabase.getInstance()
-      .from('typewords_data')
-      .select('type, data, updated_at')
-      .eq('type', type)
-      .maybeSingle()
-    return (fallbackData ?? null) as RemoteDataRow | null
+  if (error) {
+    Supabase.setStatus('error', error?.message ?? String(error))
+    return null
   }
   return data as RemoteDataRow | null
 }
@@ -113,13 +97,7 @@ async function upsertServerData(type: SyncType, data: unknown, updated_at: strin
   try {
     const client = Supabase.getInstance() as any
     const { error } = await client.from('typewords_data').upsert({ type, data, updated_at, data_version }, { onConflict: 'type' })
-    if (error && hasMissingDataVersionColumn(error)) {
-      const { error: fallbackError } = await client.from('typewords_data').upsert({ type, data, updated_at }, { onConflict: 'type' })
-      if (fallbackError) {
-        Supabase.setStatus('error', fallbackError?.message ?? String(fallbackError))
-        return
-      }
-    } else if (error) {
+    if (error) {
       Supabase.setStatus('error', error?.message ?? String(error))
       return
     }
@@ -176,32 +154,26 @@ async function getServerData() {
         continue
       }
 
-      if (isCompatibleVersion(remoteMeta.data_version, currentVersion)) {
-        const shouldFetchRemote
-          = (!localMeta.updated_at && parseTimestamp(remoteMeta.updated_at) != null)
-            || compareResult === 'remote_newer'
+      if (shouldFetchRemote(localMeta.updated_at, remoteMeta?.updated_at, remoteMeta?.data_version, currentVersion)) {
+        const remoteData = await fetchServerData(type)
+        if (!remoteData) continue
 
-        if (shouldFetchRemote) {
-          const remoteData = await fetchServerData(type)
-          if (!remoteData) continue
-
-          if (type === 'setting') {
-            const normalized = checkAndUpgradeSaveSetting({
-              val: remoteData.data,
-              version: remoteData.data_version ?? currentVersion,
-            })
-            settingStore.setState(normalized)
-            await persistLocalState('setting', normalized, remoteData.updated_at)
-          } else {
-            const normalized = checkAndUpgradeSaveDict({
-              val: remoteData.data,
-              version: remoteData.data_version ?? currentVersion,
-            })
-            applyDictData(store, normalized)
-            await persistLocalState('dict', normalized, remoteData.updated_at)
-          }
-          continue
+        if (type === 'setting') {
+          const normalized = checkAndUpgradeSaveSetting({
+            val: remoteData.data,
+            version: remoteData.data_version ?? currentVersion,
+          })
+          settingStore.setState(normalized)
+          await persistLocalState('setting', normalized, remoteData.updated_at)
+        } else {
+          const normalized = checkAndUpgradeSaveDict({
+            val: remoteData.data,
+            version: remoteData.data_version ?? currentVersion,
+          })
+          applyDictData(store, normalized)
+          await persistLocalState('dict', normalized, remoteData.updated_at)
         }
+        continue
       }
 
       if (compareResult === 'equal' || compareResult === 'unknown') {

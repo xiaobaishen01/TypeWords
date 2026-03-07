@@ -17,7 +17,7 @@ import {
   setPracticeWordCacheLocal,
 } from '@/utils/cache'
 import { Supabase } from '@/utils/supabase'
-import { compareTimestamps, parseTimestamp } from '@/utils/sync'
+import { compareTimestamps, parseTimestamp, shouldFetchRemote } from '@/utils/sync'
 
 const PRACTICE_TYPE_WORD = 'practice_word'
 const PRACTICE_TYPE_ARTICLE = 'practice_article'
@@ -43,15 +43,6 @@ function getVersion(kind: PracticeKind): number {
   return kind === 'word' ? PRACTICE_WORD_CACHE.version : PRACTICE_ARTICLE_CACHE.version
 }
 
-/** 远程有版本且不大于当前版本才视为兼容；远程无版本则视为旧数据，不兼容 */
-function isCompatibleVersion(remoteVersion: number | undefined, currentVersion: number): boolean {
-  return remoteVersion != null && remoteVersion <= currentVersion
-}
-
-function hasMissingDataVersionColumn(error: { message?: string } | null): boolean {
-  return !!error?.message?.includes('data_version')
-}
-
 async function fetchMetaFromSupabase(kind: PracticeKind): Promise<RemoteMetaRow | null> {
   if (!Supabase.check()) return null
   const typeName = getType(kind)
@@ -61,14 +52,6 @@ async function fetchMetaFromSupabase(kind: PracticeKind): Promise<RemoteMetaRow 
       .select('updated_at, data_version')
       .eq('type', typeName)
       .maybeSingle()
-    if (error && hasMissingDataVersionColumn(error)) {
-      const { data: fallbackData } = await Supabase.getInstance()
-        .from('typewords_data')
-        .select('updated_at')
-        .eq('type', typeName)
-        .maybeSingle()
-      return (fallbackData ?? null) as RemoteMetaRow | null
-    }
     if (error) {
       Supabase.setStatus('error', error?.message ?? String(error))
       return null
@@ -89,14 +72,6 @@ async function fetchFromSupabase(kind: PracticeKind): Promise<RemoteRow | null> 
       .select('data, updated_at, data_version')
       .eq('type', typeName)
       .maybeSingle()
-    if (error && hasMissingDataVersionColumn(error)) {
-      const { data: fallbackData } = await Supabase.getInstance()
-        .from('typewords_data')
-        .select('data, updated_at')
-        .eq('type', typeName)
-        .maybeSingle()
-      return (fallbackData ?? null) as RemoteRow | null
-    }
     if (error) {
       Supabase.setStatus('error', error?.message ?? String(error))
       return null
@@ -119,13 +94,7 @@ async function upsertPracticeData(
   try {
     const client = Supabase.getInstance() as any
     const { error } = await client.from('typewords_data').upsert({ type, data, updated_at, data_version }, { onConflict: 'type' })
-    if (error && hasMissingDataVersionColumn(error)) {
-      const { error: fallbackError } = await client.from('typewords_data').upsert({ type, data, updated_at }, { onConflict: 'type' })
-      if (fallbackError) {
-        Supabase.setStatus('error', fallbackError?.message ?? String(fallbackError))
-        return
-      }
-    } else if (error) {
+    if (error) {
       Supabase.setStatus('error', error?.message ?? String(error))
       return
     }
@@ -198,16 +167,11 @@ export function usePracticeWordPersistence() {
     const currentVersion = PRACTICE_WORD_CACHE.version
     const compareResult = compareTimestamps(localMeta?.updated_at, remoteMeta?.updated_at)
 
-    if (remoteMeta && isCompatibleVersion(remoteMeta.data_version, currentVersion)) {
-      const shouldFetchRemote
-        = (!localMeta?.updated_at && parseTimestamp(remoteMeta.updated_at) != null)
-          || compareResult === 'remote_newer'
-      if (shouldFetchRemote) {
-        const remote = await fetchFromSupabase('word')
-        const remoteData = remote?.data != null && typeof remote.data === 'object' ? (remote.data as PracticeWordCacheStored) : null
-        setPracticeWordCacheLocal(remoteData, remote?.updated_at)
-        return restorePracticeWordCache(remoteData)
-      }
+    if (remoteMeta && shouldFetchRemote(localMeta?.updated_at, remoteMeta?.updated_at, remoteMeta?.data_version, currentVersion)) {
+      const remote = await fetchFromSupabase('word')
+      const remoteData = remote?.data != null && typeof remote.data === 'object' ? (remote.data as PracticeWordCacheStored) : null
+      setPracticeWordCacheLocal(remoteData, remote?.updated_at)
+      return restorePracticeWordCache(remoteData)
     }
 
     if (localMeta?.val) {
@@ -247,16 +211,11 @@ export function usePracticeArticlePersistence() {
     const currentVersion = PRACTICE_ARTICLE_CACHE.version
     const compareResult = compareTimestamps(localMeta?.updated_at, remoteMeta?.updated_at)
 
-    if (remoteMeta && isCompatibleVersion(remoteMeta.data_version, currentVersion)) {
-      const shouldFetchRemote
-        = (!localMeta?.updated_at && parseTimestamp(remoteMeta.updated_at) != null)
-          || compareResult === 'remote_newer'
-      if (shouldFetchRemote) {
-        const remote = await fetchFromSupabase('article')
-        const remoteData = remote?.data != null && typeof remote.data === 'object' ? (remote.data as PracticeArticleCache) : null
-        setPracticeArticleCacheLocal(remoteData, remote?.updated_at)
-        return remoteData
-      }
+    if (remoteMeta && shouldFetchRemote(localMeta?.updated_at, remoteMeta?.updated_at, remoteMeta?.data_version, currentVersion)) {
+      const remote = await fetchFromSupabase('article')
+      const remoteData = remote?.data != null && typeof remote.data === 'object' ? (remote.data as PracticeArticleCache) : null
+      setPracticeArticleCacheLocal(remoteData, remote?.updated_at)
+      return remoteData
     }
 
     if (localMeta?.val) {

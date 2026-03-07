@@ -17,3 +17,22 @@ export function compareTimestamps(
   if (localTime > remoteTime) return 'local_newer'
   return 'equal'
 }
+
+/**
+ * 是否应拉取远程（唯一入口）：先看版本，再看时间戳。
+ * 1. 无版本号 → 视为旧，不拉。
+ * 2. 有版本号：版本大的是新；相等则比时间戳，remote_newer 才拉。
+ */
+export function shouldFetchRemote(
+  localUpdatedAt: string | undefined,
+  remoteUpdatedAt: string | undefined,
+  remoteVersion: number | undefined,
+  currentVersion: number
+): boolean {
+  if (remoteVersion == null) return false
+  const hasLocal = parseTimestamp(localUpdatedAt) != null
+  if (!hasLocal && parseTimestamp(remoteUpdatedAt) != null) return true
+  if (remoteVersion > currentVersion) return true
+  if (remoteVersion < currentVersion) return false
+  return compareTimestamps(localUpdatedAt, remoteUpdatedAt) === 'remote_newer'
+}
