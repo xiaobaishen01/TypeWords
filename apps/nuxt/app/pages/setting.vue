@@ -459,7 +459,6 @@ async function pullRemoteDataToLocal(): Promise<void> {
   const now = new Date().toISOString()
 
   const dictRow = map.get('dict')
-  debugger
   if (dictRow && dictRow.data && typeof dictRow.data === 'object') {
     const dictState = checkAndUpgradeSaveDict({ val: dictRow.data, version: dictRow.data_version })
     dictState.load = true
