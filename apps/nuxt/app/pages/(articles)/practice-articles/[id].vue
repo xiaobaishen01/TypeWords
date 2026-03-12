@@ -49,9 +49,11 @@ let loading = $ref<boolean>(false)
 let allWrongWords = new Set()
 let editArticle = $ref<Article>(getDefaultArticle())
 let audioRef = $ref<HTMLAudioElement>()
-let timer = $ref(0)
+let timer = $ref<ReturnType<typeof setInterval> | number>(0)
 let isFocus = true
 let isTyped = $ref(false)
+//用于解决 手动改文章时改了lastLearnIndex，同时又监听了store.sbook.lastLearnIndex，会冲突
+let lock = false
 
 function write() {
   // console.log('write')
@@ -162,10 +164,22 @@ watch(
   { immediate: true, deep: true }
 )
 
+//用于远程拉了新数据，被动更新当前文章
+watch(
+  () => store.sbook.lastLearnIndex,
+  n => {
+    if (lock) return
+    getCurrentPractice()
+  }
+)
+
 onActivated(() => {
   console.log('onActivated')
 })
 onMounted(() => {
+  document.removeEventListener('visibilitychange', onvisibilitychange)
+  document.addEventListener('visibilitychange', onvisibilitychange)
+
   console.log('onMounted')
   if (store.sbook?.articles?.length) {
     articleData.list = cloneDeep(store.sbook.articles)
@@ -180,16 +194,21 @@ onMounted(() => {
   }
 })
 
-function unmount() {
+async function unmount() {
+  document.removeEventListener('visibilitychange', onvisibilitychange)
+
   console.log('onUnmounted')
   runtimeStore.disableEventListener = false
   const cache = getPracticeArticleCacheLocal()
   //如果有缓存，则更新花费的时间；因为用户不输入不会保存数据
   if (cache) {
+    if (runtimeStore.globalLoading) return
+    runtimeStore.globalLoading = true
     cache.statStoreData.spend = statStore.spend
-    articlePersistence.save(cache)
+    await articlePersistence.save(cache)
+    runtimeStore.globalLoading = false
   }
-  clearInterval(timer)
+  timer && clearInterval(timer)
 }
 
 onUnmounted(unmount)
@@ -198,6 +217,23 @@ onDeactivated(unmount)
 
 useStartKeyboardEventListener()
 useDisableEventListener(() => loading)
+
+const onvisibilitychange = async () => {
+  isFocus = !document.hidden
+  if (isFocus) {
+    if (runtimeStore.globalLoading) return
+    runtimeStore.globalLoading = true
+    try {
+      const cache = await articlePersistence.fetch()
+      if (cache) {
+        statStore.$patch(cache.statStoreData)
+        typingArticleRef?.applyPracticeCache?.(cache)
+      }
+    } finally {
+      runtimeStore.globalLoading = false
+    }
+  }
+}
 
 function setArticle(val: Article) {
   statStore.wrong = 0
@@ -238,7 +274,7 @@ async function complete() {
 
   //todo 有空了改成实时保存
   let data: Partial<Statistics> & { title: string; articleId: number } = {
-    articleId: articleData.article.id,
+    articleId: Number(articleData.article.id),
     title: articleData.article.title,
     spend: statStore.spend,
     //修正计时
@@ -336,7 +372,9 @@ function nextWord(word: ArticleWord) {
 }
 
 async function changeArticle(val: ArticleItem) {
-  articlePersistence.clear()
+  if (lock) return
+  lock = true
+  await articlePersistence.clear()
   let rIndex = articleData.list.findIndex(v => v.id === val.item.id)
   if (rIndex > -1) {
     store.sbook.lastLearnIndex = rIndex
@@ -350,6 +388,7 @@ async function changeArticle(val: ArticleItem) {
     }
   }
   initAudio()
+  lock = true
 }
 
 const handlePlayNext = (nextArticle: Article) => {
@@ -404,16 +443,6 @@ useEvents([
   [ShortcutKey.ToggleCollect, collect],
   [ShortcutKey.EditArticle, shortcutKeyEdit],
 ])
-
-onMounted(() => {
-  document.addEventListener('visibilitychange', () => {
-    isFocus = !document.hidden
-  })
-})
-
-onUnmounted(() => {
-  timer && clearInterval(timer)
-})
 
 const { playSentenceAudio } = usePlaySentenceAudio()
 

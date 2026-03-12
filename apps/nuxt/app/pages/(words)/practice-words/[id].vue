@@ -120,11 +120,17 @@ watch(
 const onvisibilitychange = async () => {
   isFocus = !document.hidden
   if (isFocus) {
-    const d = await wordPersistence.fetch()
-    if (d) {
-      taskWords = Object.assign(taskWords, d.taskWords)
-      data = Object.assign(data, d.practiceData)
-      statStore.$patch(d.statStoreData)
+    if (runtimeStore.globalLoading) return
+    runtimeStore.globalLoading = true
+    try {
+      const d = await wordPersistence.fetch()
+      if (d) {
+        taskWords = Object.assign(taskWords, d.taskWords)
+        data = Object.assign(data, d.practiceData)
+        statStore.$patch(d.statStoreData)
+      }
+    } finally {
+      runtimeStore.globalLoading = false
     }
   }
 }

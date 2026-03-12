@@ -23,6 +23,7 @@ import isoWeek from 'dayjs/plugin/isoWeek'
 import { watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { DictType } from '@/types/enum.ts'
+import { usePracticeArticlePersistence, usePracticeWordPersistence } from '~/composables/usePracticePersistence.ts'
 
 dayjs.extend(isoWeek)
 dayjs.extend(isBetween)
@@ -38,16 +39,36 @@ const settingStore = useSettingStore()
 const router = useRouter()
 const runtimeStore = useRuntimeStore()
 let isSaveData = $ref(false)
+const articlePersistence = usePracticeArticlePersistence()
 
 watch(
-  () => store.load,
-  n => {
-    if (n) init()
+  [() => store.load, () => runtimeStore.globalLoading],
+  ([a, b]) => {
+    if (a && !b) {
+      init()
+    }
   },
   { immediate: true }
 )
 
+async function onvisibilitychange() {
+  if (!document.hidden) {
+    //当页面可见时，检查是否需要从远程拉取数据
+    const d = await articlePersistence.load()
+    if (d) {
+      isSaveData = true
+    }
+  }
+}
+
+onUnmounted(()=>{
+  document.removeEventListener('visibilitychange', onvisibilitychange)
+})
+
 async function init() {
+  document.removeEventListener('visibilitychange', onvisibilitychange)
+  document.addEventListener('visibilitychange', onvisibilitychange)
+
   if (AppEnv.CAN_REQUEST) {
     let res = await myDictList({ type: 'article' })
     if (res.success) {
@@ -59,7 +80,7 @@ async function init() {
       store.article.bookList[store.article.studyIndex] = await _getDictDataByUrl(store.sbook, DictType.article)
     }
   }
-  let d = getPracticeArticleCacheLocal()
+  const d = await articlePersistence.load()
   if (d) {
     isSaveData = true
   }

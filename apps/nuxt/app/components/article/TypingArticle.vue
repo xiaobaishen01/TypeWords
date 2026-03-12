@@ -8,6 +8,7 @@ import Space from '~/components/article/Space.vue'
 import TypingWord from '~/components/article/TypingWord.vue'
 import { useBaseStore } from '~/stores/base'
 import { usePracticeStore } from '~/stores/practice'
+import { useRuntimeStore } from '~/stores/runtime'
 import { useSettingStore } from '~/stores/setting'
 import { getDefaultArticle, getDefaultWord } from '~/types/func'
 import type { Article, ArticleWord, Sentence, Word } from '~/types/types'
@@ -21,6 +22,7 @@ import { inject, onMounted, onUnmounted, watch } from 'vue'
 
 import { usePracticeArticlePersistence } from '~/composables/usePracticePersistence'
 import { PracticeArticleWordType, ShortcutKey } from '~/types/enum'
+import type { PracticeArticleCache } from '~/utils/cache'
 
 interface IProps {
   article: Article
@@ -88,26 +90,38 @@ const { toggleWordCollect } = useWordOptions()
 const store = useBaseStore()
 const settingStore = useSettingStore()
 const statStore = usePracticeStore()
+const runtimeStore = useRuntimeStore()
 const articlePersistence = usePracticeArticlePersistence()
 const isMob = isMobile()
 
-const save = debounce(
-  () =>
-    articlePersistence.save({
+const savePracticeData = async () => {
+  if (runtimeStore.globalLoading) return
+  runtimeStore.globalLoading = true
+  try {
+    await articlePersistence.save({
       practiceData: {
         sectionIndex,
         sentenceIndex,
         wordIndex,
       },
       statStoreData: statStore.$state,
-    }),
-  1500
-)
+    })
+  } finally {
+    runtimeStore.globalLoading = false
+  }
+}
 
-watch([() => sectionIndex, () => sentenceIndex, () => wordIndex, () => stringIndex], ([a, b, c]) => {
+const save = debounce(() => {
+  void savePracticeData()
+}, 1500)
+
+watch([() => sectionIndex, () => sentenceIndex, () => wordIndex], ([a, b, c]) => {
   if (a !== 0 || b !== 0 || c !== 0) {
     save()
   }
+})
+
+watch([() => sectionIndex, () => sentenceIndex, () => wordIndex, () => stringIndex], ([a, b, c]) => {
   checkCursorPosition(a, b, c)
 })
 
@@ -535,6 +549,21 @@ function jump(i, j, w, sentence?) {
   }
 }
 
+function applyPracticeCache(cache: PracticeArticleCache) {
+  if (!cache?.practiceData) return
+  const { sectionIndex: i = 0, sentenceIndex: j = 0, wordIndex: w = 0 } = cache.practiceData
+  statStore.$patch(cache.statStoreData ?? {})
+  jump(i, j, w)
+  _nextTick(() => {
+    const sentence = props.article.sections?.[sectionIndex]?.[sentenceIndex]
+    if (sentence) {
+      emit('play', { sentence, handle: false })
+    }
+    checkTranslateLocation().then(() => checkCursorPosition())
+    focusMobileInput()
+  })
+}
+
 function onContextMenu(e: MouseEvent, sentence: Sentence, i, j, w) {
   const selectedText = window.getSelection().toString()
   console.log(selectedText)
@@ -661,6 +690,7 @@ defineExpose({
   hideSentence,
   nextSentence,
   init,
+  applyPracticeCache,
   getIndex: () => {
     return {
       sectionIndex,

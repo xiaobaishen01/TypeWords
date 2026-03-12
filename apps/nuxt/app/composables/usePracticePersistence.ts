@@ -130,8 +130,8 @@ export function usePracticeArticlePersistence() {
     await dataSync.saveLocalAndSync('practice_article', data ?? null)
   }
 
-  function clear(): void {
-    void dataSync.saveLocalAndSync('practice_article', null)
+  async function clear() {
+    await dataSync.saveLocalAndSync('practice_article', null)
   }
 
   return { load, save, clear, fetch, getLocalDataCompact }

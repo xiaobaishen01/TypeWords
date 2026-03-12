@@ -65,16 +65,12 @@ function getLocalWithMeta<T>(config: CacheConfig): LocalCacheResult<T> | null {
 }
 
 function setLocal<T>(config: CacheConfig, val: T | null, updated_at: string): void {
-  if (val != null) {
-    const payload: { version: number; val: T; updated_at?: string } = {
-      version: config.version,
-      val,
-      updated_at,
-    }
-    localStorage.setItem(config.key, JSON.stringify(payload))
-  } else {
-    localStorage.removeItem(config.key)
+  const payload: { version: number; val: T; updated_at?: string } = {
+    version: config.version,
+    val,
+    updated_at,
   }
+  localStorage.setItem(config.key, JSON.stringify(payload))
 }
 
 export function getPracticeWordCacheLocal(): PracticeWordCacheStored | null {
