@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import BasePage from '~/components/base/BasePage.vue'
-import BaseButton from '~/components/base/BaseButton.vue'
+import { BaseButton, Toast } from '@typewords/base'
 import VolumeIcon from '@/components/icon/VolumeIcon.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBaseStore } from '@/stores/base.ts'
@@ -9,7 +9,6 @@ import type { Dict, TaskWords, Word } from '@/types/types.ts'
 import { _getDictDataByUrl, shuffle } from '@/utils'
 import { useRuntimeStore } from '@/stores/runtime.ts'
 import { usePlayBeep, usePlayCorrect, usePlayWordAudio } from '@/hooks/sound.ts'
-import Toast from '@/components/base/toast/Toast.ts'
 import { useEvents } from '~/utils/eventBus'
 import { useStartKeyboardEventListener } from '@/hooks/event.ts'
 import { ShortcutKey } from '~/types/enum'
@@ -206,7 +205,7 @@ async function init() {
   }
   if (runtimeStore.routeData.taskWords) {
     let currentStudy: TaskWords = runtimeStore.routeData.taskWords
-    if (currentStudy.review.length ) {
+    if (currentStudy.review.length) {
       testWords = runtimeStore.routeData.taskWords.review
     }
   }

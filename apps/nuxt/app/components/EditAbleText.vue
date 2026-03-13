@@ -1,14 +1,11 @@
 <script setup lang="ts">
-
-import BaseButton from "~/components/base/BaseButton.vue";
-import { useI18n } from 'vue-i18n';
-import {watchEffect} from "vue";
-import Textarea from "@/components/base/Textarea.vue";
-import Toast from "@/components/base/toast/Toast.ts";
+import { BaseButton, Textarea, Toast } from '@typewords/base'
+import { useI18n } from 'vue-i18n'
+import { watchEffect } from 'vue'
 
 interface IProps {
-  value: string,
-  disabled: boolean,
+  value: string
+  disabled: boolean
 }
 
 const props = withDefaults(defineProps<IProps>(), {
@@ -16,9 +13,7 @@ const props = withDefaults(defineProps<IProps>(), {
   disabled: false,
 })
 
-const emit = defineEmits([
-  'save'
-])
+const emit = defineEmits(['save'])
 
 let editVal = $ref('')
 let edit = $ref(false)
@@ -42,34 +37,29 @@ function toggle() {
 </script>
 
 <template>
-  <div
-      v-if="edit"
-      class="edit-text">
+  <div v-if="edit" class="edit-text">
     <Textarea
-        v-model="editVal"
-        ref="inputRef"
-        textarea
-        autosize
-        autofocus
-        type="textarea"
-        :input-style="`color: var(--color-font-1);font-size: 1rem;`"
+      v-model="editVal"
+      ref="inputRef"
+      textarea
+      autosize
+      autofocus
+      type="textarea"
+      :input-style="`color: var(--color-font-1);font-size: 1rem;`"
     />
     <div class="flex justify-end mt-2">
       <BaseButton @click="toggle">{{ $t('cancel') }}</BaseButton>
       <BaseButton @click="save">{{ $t('apply') }}</BaseButton>
     </div>
   </div>
-  <div
-      v-else
-      class="text"
-      @click="toggle">
+  <div v-else class="text" @click="toggle">
     {{ value }}
   </div>
 </template>
 
 <style scoped lang="scss">
 .edit-text {
-  margin-top: .6rem;
+  margin-top: 0.6rem;
   color: var(--color-font-1);
 }
 

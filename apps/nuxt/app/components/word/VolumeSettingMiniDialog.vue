@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import BaseIcon from '~/components/base/BaseIcon.vue'
-import Switch from '~/components/base/Switch.vue'
+import { BaseIcon, Switch } from '@typewords/base'
 import Select from '~/components/base/select/Select.vue'
 import Option from '~/components/base/select/Option.vue'
 import MiniDialog from '~/components/dialog/MiniDialog.vue'
@@ -105,7 +104,6 @@ function eventCheck(e) {
 </template>
 
 <style scoped lang="scss">
-
 .wrapper {
   width: 50%;
   position: relative;

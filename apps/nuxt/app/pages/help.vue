@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import BasePage from '~/components/base/BasePage.vue'
-import Collapse from '@/components/base/Collapse.vue'
+import { Collapse } from '@typewords/base'
 import WeChat from '~/components/channel-icons/WeChat.vue'
 import { APP_NAME, GITHUB, Origin } from '@/config/env.ts'
 import ConflictNoticeText from '~/components/dialog/ConflictNoticeText.vue'

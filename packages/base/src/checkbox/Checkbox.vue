@@ -1,9 +1,9 @@
 <template>
   <label class="checkbox" @click.stop>
     <input
-        type="checkbox"
-        :checked="modelValue"
-        @change="change"
+      type="checkbox"
+      :checked="modelValue"
+      @change="change"
     />
     <span class="checkbox-box">
       <span class="checkbox-inner"></span>

@@ -8,11 +8,10 @@ import { useRuntimeStore } from '@/stores/runtime'
 import dayjs from 'dayjs'
 import { AppEnv, DictId, ENV, RESOURCE_PATH, SAVE_DICT_KEY, SAVE_SETTING_KEY } from '@/config/env'
 import { nextTick } from 'vue'
-import Toast from '@/components/base/toast/Toast'
+import { Toast } from '@typewords/base'
 import { getDefaultDict, getDefaultWord } from '@/types/func'
 import duration from 'dayjs/plugin/duration'
 import { DictType } from '@/types/enum'
-import { Rating } from 'ts-fsrs'
 
 dayjs.extend(duration)
 

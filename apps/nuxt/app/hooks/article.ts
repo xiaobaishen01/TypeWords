@@ -1,13 +1,12 @@
-import type { Article, Sentence } from "@/types/types"
-import { _nextTick, cloneDeep } from "@/utils"
-import { usePlayWordAudio } from "@/hooks/sound"
-import { getSentenceAllText, getSentenceAllTranslateText } from "@/hooks/translate"
-import { getDefaultArticleWord, getDefaultDict } from "@/types/func"
-import { useSettingStore } from "@/stores/setting"
-import { useBaseStore } from "@/stores/base"
-import { useRuntimeStore } from "@/stores/runtime"
+import type { Article, Sentence } from '@/types/types'
+import { _nextTick, cloneDeep } from '@/utils'
+import { usePlayWordAudio } from '@/hooks/sound'
+import { getSentenceAllText, getSentenceAllTranslateText } from '@/hooks/translate'
+import { getDefaultArticleWord, getDefaultDict } from '@/types/func'
+import { useBaseStore } from '@/stores/base'
+import { useRuntimeStore } from '@/stores/runtime'
 import { nanoid } from 'nanoid'
-import {PracticeArticleWordType} from "@/types/enum";
+import { PracticeArticleWordType } from '@/types/enum'
 import { DictId } from '@/config/env'
 
 function parseSentence(sentence: string) {
@@ -34,7 +33,7 @@ function parseSentence(sentence: string) {
     // 1) 货币 + 数字（$1,000.50 或 ¥200 或 €100.5）
     let m = rest.match(/^[\$¥€£]\d{1,3}(?:,\d{3})*(?:\.\d+)?%?/)
     if (m) {
-      tokens.push({word: m[0], start: i, end: i + m[0].length, type: PracticeArticleWordType.Number})
+      tokens.push({ word: m[0], start: i, end: i + m[0].length, type: PracticeArticleWordType.Number })
       i += m[0].length
       continue
     }
@@ -42,7 +41,7 @@ function parseSentence(sentence: string) {
     // 2) 数字/小数/百分比（100% 3.14 1,000.00）
     m = rest.match(/^\d{1,3}(?:,\d{3})*(?:\.\d+)?%?/)
     if (m) {
-      tokens.push({word: m[0], start: i, end: i + m[0].length, type: PracticeArticleWordType.Number})
+      tokens.push({ word: m[0], start: i, end: i + m[0].length, type: PracticeArticleWordType.Number })
       i += m[0].length
       continue
     }
@@ -50,7 +49,7 @@ function parseSentence(sentence: string) {
     // 3) 带点缩写或多段缩写（U.S. U.S.A. e.g. i.e. Ph.D.）
     m = rest.match(/^[A-Za-z]+(?:\.[A-Za-z]+)+\.?/)
     if (m) {
-      tokens.push({word: m[0], start: i, end: i + m[0].length, type: PracticeArticleWordType.Word})
+      tokens.push({ word: m[0], start: i, end: i + m[0].length, type: PracticeArticleWordType.Word })
       i += m[0].length
       continue
     }
@@ -58,7 +57,7 @@ function parseSentence(sentence: string) {
     // 4) 单词（包含撇号/连字符，如 it's, o'clock, we'll, mother-in-law）
     m = rest.match(/^[A-Za-z0-9]+(?:[\'\-][A-Za-z0-9]+)*/)
     if (m) {
-      tokens.push({word: m[0], start: i, end: i + m[0].length, type: PracticeArticleWordType.Word})
+      tokens.push({ word: m[0], start: i, end: i + m[0].length, type: PracticeArticleWordType.Word })
       i += m[0].length
       continue
     }
@@ -66,13 +65,13 @@ function parseSentence(sentence: string) {
     // 5) 其它可视符号（标点）——单字符处理（连续标点会被循环拆为单字符）
     //    包括：.,!?;:"'()-[]{}<>/\\@#%^&*~`等非单词非空白字符
     if (/[^\w\s]/.test(ch)) {
-      tokens.push({word: ch, start: i, end: i + 1, type: PracticeArticleWordType.Symbol})
+      tokens.push({ word: ch, start: i, end: i + 1, type: PracticeArticleWordType.Symbol })
       i += 1
       continue
     }
 
     // 6) 回退方案：把当前字符当作一个 token（防止意外丢失）
-    tokens.push({word: ch, start: i, end: i + 1, type: PracticeArticleWordType.Symbol})
+    tokens.push({ word: ch, start: i, end: i + 1, type: PracticeArticleWordType.Symbol })
     i += 1
   }
 
@@ -81,7 +80,7 @@ function parseSentence(sentence: string) {
     const next = tokens[idx + 1]
     const between = next ? sentence.slice(t.end, next.start) : sentence.slice(t.end)
     const nextSpace = /\s/.test(between)
-    return getDefaultArticleWord({word: t.word, nextSpace, type: t.type})
+    return getDefaultArticleWord({ word: t.word, nextSpace, type: t.type })
   })
 
   return result
@@ -92,44 +91,43 @@ export function genArticleSectionData(article: Article): number {
   let text = article.text.trim()
   let sections: Sentence[][] = []
   text
-    .split("\n\n")
+    .split('\n\n')
     .filter(Boolean)
     .map((sectionText, i) => {
       let section: Sentence[] = []
       sections.push(section)
       sectionText
         .trim()
-        .split("\n")
+        .split('\n')
         .filter(Boolean)
         .map((item, i, arr) => {
           item = item.trim()
           //如果没有空格，导致修改一行一行的数据时，汇总时全没有空格了，库无法正常断句
           //所以要保证最后一个是空格，但防止用户打N个空格，就去掉再加上一个空格，只需要一个即可
           //2025/10/1:最后一句不需要空格
-          if (i < arr.length - 1) item += " "
+          if (i < arr.length - 1) item += ' '
           let sentence: Sentence = cloneDeep({
             text: item,
-            translate: "",
+            translate: '',
             words: parseSentence(item),
-            audioPosition: [0, 0]
+            audioPosition: [0, 0],
           })
           section.push(sentence)
         })
     })
 
-  sections = sections.filter((v) => v.length)
+  sections = sections.filter(v => v.length)
   article.sections = sections
 
   let failCount = 0
-  let translateList = article.textTranslate?.split("\n\n") || []
+  let translateList = article.textTranslate?.split('\n\n') || []
   for (let i = 0; i < article.sections.length; i++) {
     let v = article.sections[i]
     let sList = []
     try {
       let s = translateList[i]
-      sList = s.split("\n")
-    } catch (e) {
-    }
+      sList = s.split('\n')
+    } catch (e) {}
 
     for (let j = 0; j < v.length; j++) {
       let sentence = v[j]
@@ -178,15 +176,33 @@ export function splitEnArticle2(text: string): string {
     // text = "It was Sunday. I never get up early on Sundays. I sometimes stay in bed until lunchtime. Last Sunday I got up very late. I looked out of the window. It was dark outside. 'What a day!' I thought. 'It's raining again.' Just then, the telephone rang. It was my aunt Lucy. 'I've just arrived by train,' she said. 'I'm coming to see you.'\n\n     'But I'm still having breakfast,' I said.\n\n     'What are you doing?' she asked.\n\n     'I'm having breakfast,' I repeated.\n\n     'Dear me,' she said. 'Do you always get up so late? It's one o'clock!'"
   }
 
-  if (!text) return ""
+  if (!text) return ''
 
-  const abbreviations = ["Mr", "Mrs", "Ms", "Dr", "Prof", "Sr", "Jr", "St", "Co", "Ltd", "Inc", "e.g", "i.e", "U.S.A", "U.S", "U.K", "etc"]
+  const abbreviations = [
+    'Mr',
+    'Mrs',
+    'Ms',
+    'Dr',
+    'Prof',
+    'Sr',
+    'Jr',
+    'St',
+    'Co',
+    'Ltd',
+    'Inc',
+    'e.g',
+    'i.e',
+    'U.S.A',
+    'U.S',
+    'U.K',
+    'etc',
+  ]
 
   function isSentenceEnd(text, idx) {
     const before = text.slice(0, idx + 1)
     const after = text.slice(idx + 1)
 
-    const abbrevPattern = new RegExp("\\b(" + abbreviations.join("|") + ")\\.$", "i")
+    const abbrevPattern = new RegExp('\\b(' + abbreviations.join('|') + ')\\.$', 'i')
     if (abbrevPattern.test(before)) return false
     if (/\d+\.$/.test(before)) return false
     if (/\d+\.\d/.test(text.slice(idx - 1, idx + 2))) return false
@@ -197,21 +213,21 @@ export function splitEnArticle2(text: string): string {
   }
 
   function normalizeQuotes(text) {
-    const isWord = (ch) => /\w/.test(ch)
+    const isWord = ch => /\w/.test(ch)
     let res = []
     let singleOpen = false
     let doubleOpen = false
     for (let i = 0; i < text.length; i++) {
       const ch = text[i]
       if (ch === "'") {
-        const prev = i > 0 ? text[i - 1] : ""
-        const nxt = i + 1 < text.length ? text[i + 1] : ""
+        const prev = i > 0 ? text[i - 1] : ''
+        const nxt = i + 1 < text.length ? text[i + 1] : ''
         if (isWord(prev) && isWord(nxt)) {
           res.push("'")
           continue
         }
         if (singleOpen) {
-          if (res.length && res[res.length - 1] === " ") res.pop()
+          if (res.length && res[res.length - 1] === ' ') res.pop()
           res.push("'")
           singleOpen = false
         } else {
@@ -220,7 +236,7 @@ export function splitEnArticle2(text: string): string {
         }
       } else if (ch === '"') {
         if (doubleOpen) {
-          if (res.length && res[res.length - 1] === " ") res.pop()
+          if (res.length && res[res.length - 1] === ' ') res.pop()
           res.push('"')
           doubleOpen = false
         } else {
@@ -231,22 +247,22 @@ export function splitEnArticle2(text: string): string {
         res.push(ch)
       }
     }
-    return res.join("")
+    return res.join('')
   }
 
-  let rawParagraphs = text.replaceAll("\n\n", "`^`").replaceAll("\n", "").split("`^`")
+  let rawParagraphs = text.replaceAll('\n\n', '`^`').replaceAll('\n', '').split('`^`')
 
-  const formattedParagraphs = rawParagraphs.map((p) => {
+  const formattedParagraphs = rawParagraphs.map(p => {
     p = p.trim()
-    if (!p) return ""
+    if (!p) return ''
 
-    p = p.replace(/\n/g, " ")
+    p = p.replace(/\n/g, ' ')
     p = normalizeQuotes(p)
 
     const tentative: string[] = p.match(/[^.!?。！？]+[.!?。！？'"”’)]*/g) || []
 
     const sentences = []
-    tentative.forEach((segment) => {
+    tentative.forEach(segment => {
       segment = segment.trim()
       if (!segment) return
 
@@ -255,7 +271,7 @@ export function splitEnArticle2(text: string): string {
         const globalIdx = p.indexOf(segment)
         if (!isSentenceEnd(p, globalIdx + segment.length - 1)) {
           if (sentences.length > 0) {
-            sentences[sentences.length - 1] += " " + segment
+            sentences[sentences.length - 1] += ' ' + segment
           } else {
             sentences.push(segment)
           }
@@ -272,7 +288,7 @@ export function splitEnArticle2(text: string): string {
       if (i + 1 < sentences.length) {
         const nxt = sentences[i + 1]
         if (/['"”’)\]]$/.test(cur) && /^[a-z]|^(I|You|She|He|They|We)\b/i.test(nxt)) {
-          finalSentences.push(cur + " " + nxt)
+          finalSentences.push(cur + ' ' + nxt)
           i += 2
           continue
         }
@@ -281,10 +297,10 @@ export function splitEnArticle2(text: string): string {
       i += 1
     }
 
-    return finalSentences.join("\n")
+    return finalSentences.join('\n')
   })
 
-  return formattedParagraphs.filter((p) => p).join("\n\n")
+  return formattedParagraphs.filter(p => p).join('\n\n')
 }
 
 export function splitCNArticle2(text: string): string {
@@ -298,31 +314,31 @@ export function splitCNArticle2(text: string): string {
     //     text = `上星期我去看戏。我的座位很好，戏很有意思，但我却无法欣赏。一青年男子与一青年女子坐在我的身后，大声地说着话。我非常生气，因为我听不见演员在说什么。我回过头去怒视着那一男一女，他们却毫不理会。最后，我忍不住了，又一次回过头去，生气地说：“我一个字也听不见了！”
     // “不关你的事，”那男的毫不客气地说，“这是私人间的谈话！”`
   }
-  const segmenterJa = new Intl.Segmenter("zh-CN", {granularity: "sentence"})
+  const segmenterJa = new Intl.Segmenter('zh-CN', { granularity: 'sentence' })
 
-  let sectionTextList = text.replaceAll("\n\n", "`^`").replaceAll("\n", "").split("`^`")
+  let sectionTextList = text.replaceAll('\n\n', '`^`').replaceAll('\n', '').split('`^`')
 
   let s = sectionTextList
-    .filter((v) => v)
+    .filter(v => v)
     .map((rowSection, i) => {
       const segments = segmenterJa.segment(rowSection)
-      let ss = ""
-      Array.from(segments).map((sentenceRow) => {
+      let ss = ''
+      Array.from(segments).map(sentenceRow => {
         let row = sentenceRow.segment
         if (row) {
           //这个库总是会把反引号给断句到上一行末尾
           //而 sentence-splitter 这个库总是会把反引号给断句到下一行开头
-          if (row[row.length - 1] === "“") {
+          if (row[row.length - 1] === '“') {
             row = row.substring(0, row.length - 1)
-            ss += row + "\n" + "“"
+            ss += row + '\n' + '“'
           } else {
-            ss += row + "\n"
+            ss += row + '\n'
           }
         }
       })
       return ss
     })
-    .join("\n")
+    .join('\n')
     .trim()
   return s
 }
@@ -345,10 +361,13 @@ export function usePlaySentenceAudio() {
       // console.log(sentence.audioPosition,(end - start) * 1000)
 
       if (end && end !== -1) {
-        timer = setTimeout(() => {
-          console.log("停")
-          ref.pause()
-        }, ((end - start) / ref.playbackRate) * 1000)
+        timer = setTimeout(
+          () => {
+            console.log('停')
+            ref.pause()
+          },
+          ((end - start) / ref.playbackRate) * 1000
+        )
       }
     } else {
       playWordAudio(sentence.text)
@@ -356,7 +375,7 @@ export function usePlaySentenceAudio() {
   }
 
   return {
-    playSentenceAudio
+    playSentenceAudio,
   }
 }
 
@@ -366,7 +385,7 @@ export function syncBookInMyStudyList(study = false) {
     const base = useBaseStore()
     const runtimeStore = useRuntimeStore()
     let temp = runtimeStore.editDict
-    let rIndex = base.article.bookList.findIndex((v) => v.id === temp.id)
+    let rIndex = base.article.bookList.findIndex(v => v.id === temp.id)
     if (!temp.custom && temp.id !== DictId.articleCollect) {
       temp.custom = true
       if (!temp.id.includes('_custom')) {

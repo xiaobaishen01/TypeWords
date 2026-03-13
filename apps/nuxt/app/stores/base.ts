@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
-import type { Dict, FSRSData, Word } from '@/types/types'
-import { _getStudyProgress, checkAndUpgradeSaveDict, shakeCommonDict } from '@/utils'
+import type { Dict, Word } from '@/types/types'
+import { _getStudyProgress, checkAndUpgradeSaveDict } from '@/utils'
 import { shallowReactive } from 'vue'
 import { getDefaultDict } from '@/types/func'
-import { get, set } from 'idb-keyval'
+import { get } from 'idb-keyval'
 import { AppEnv, DictId, SAVE_DICT_KEY } from '@/config/env'
 import { add2MyDict, dictListVersion, myDictList } from '@/apis'
-import Toast from '@/components/base/toast/Toast'
+import { Toast } from '@typewords/base'
 import type { Card } from 'ts-fsrs'
 
 export interface BaseState {

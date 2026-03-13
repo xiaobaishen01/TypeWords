@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseIcon from '~/components/base/BaseIcon.vue'
+import { BaseIcon, ToastComponent } from '@typewords/base'
 import Logo from '@/components/Logo.vue'
 import MigrateDialog from '~/components/dialog/MigrateDialog.vue'
 import { Origin } from '@/config/env'

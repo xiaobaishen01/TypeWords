@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { GITHUB } from '@/config/env.ts'
-import BaseIcon from '~/components/base/BaseIcon.vue'
+import { BaseIcon } from '@typewords/base'
 </script>
 
 <template>

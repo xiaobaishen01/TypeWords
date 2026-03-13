@@ -1,26 +1,11 @@
 <script setup lang="tsx">
-import { _getDictDataByUrl, resourceWrap, reverse, shuffle, useNav } from '@/utils'
 import BasePage from '~/components/base/BasePage.vue'
-import type { DictResource } from '@/types/types'
-import { useRuntimeStore } from '@/stores/runtime'
-import BaseIcon from '~/components/base/BaseIcon.vue'
-import Empty from '@/components/Empty.vue'
-import BaseButton from '~/components/base/BaseButton.vue'
-import DictList from '@/components/list/DictList.vue'
-import BackIcon from '~/components/icon/BackIcon.vue'
-import { useRouter } from 'vue-router'
-import { computed, ref } from 'vue'
-import { getDefaultDict } from '@/types/func'
-import BaseInput from '@/components/base/BaseInput.vue'
+import { BaseIcon, PopConfirm } from '@typewords/base'
+import { ref } from 'vue'
 import axios from 'axios'
 import DeleteIcon from '~/components/icon/DeleteIcon.vue'
-import PopConfirm from '~/components/base/PopConfirm.vue'
 import BaseTable from '~/components/base/BaseTable.vue'
 import WordItem from '~/components/word/WordItem.vue'
-import { AppEnv, DictId } from '~/config/env.ts'
-import { detail } from '~/apis'
-import { Sort } from '~/types/enum.ts'
-import Toast from '~/components/base/toast/Toast.ts'
 
 let list = $ref([])
 let selectedFile = $ref(null)
@@ -47,7 +32,6 @@ const handleFileClick = async item => {
 const closePanel = () => {
   showPanel = false
 }
-
 
 onMounted(() => {
   axios.get('http://jl.cc/').then(response => {
@@ -120,7 +104,6 @@ defineRender(() => {
                     </WordItem>
                   )}
                 </BaseTable>
-
               </div>
             </div>
           </div>

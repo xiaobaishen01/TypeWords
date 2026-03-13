@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import { _getAccomplishDays } from '~/utils'
-import BaseButton from '~/components/base/BaseButton.vue'
-import Slider from '~/components/base/Slider.vue'
+import { BaseButton, InputNumber, Slider, Tooltip, Toast } from '@typewords/base'
 import { defineAsyncComponent, watch } from 'vue'
 import { useSettingStore } from '~/stores/setting'
-import Toast from '~/components/base/toast/Toast'
 import ChangeLastPracticeIndexDialog from '~/components/word/ChangeLastPracticeIndexDialog.vue'
-import Tooltip from '~/components/base/Tooltip.vue'
 import { useRuntimeStore } from '~/stores/runtime'
 import BaseInput from '~/components/base/BaseInput.vue'
-import InputNumber from '~/components/base/InputNumber.vue'
 
 const Dialog = defineAsyncComponent(() => import('~/components/dialog/Dialog.vue'))
 

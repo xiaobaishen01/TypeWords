@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import InputNumber from '@/components/base/InputNumber.vue'
+import { InputNumber } from '@typewords/base'
 import SettingItem from '@/components/setting/SettingItem.vue'
 import { useSettingStore } from '@/stores/setting.ts'
-import BaseButton from '~/components/base/BaseButton.vue'
+import { BaseButton, Switch } from '@typewords/base'
 import { useRouter } from 'vue-router'
 const settingStore = useSettingStore()
 const router = useRouter()

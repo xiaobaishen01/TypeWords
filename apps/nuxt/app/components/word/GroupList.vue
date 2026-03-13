@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
-import RadioGroup from '~/components/base/radio/RadioGroup.vue'
-import Radio from '~/components/base/radio/Radio.vue'
+import { Radio, RadioGroup } from '@typewords/base'
 import { useBaseStore } from '~/stores/base.ts'
 const store = useBaseStore()
 
@@ -84,7 +83,7 @@ const emit = defineEmits<{
                 'bg-card-active!': value === store.currentGroup,
               }"
               @click="emit('click', value)"
-              v-for="(value) in store.groupLength"
+              v-for="value in store.groupLength"
               :key="value"
             >
               <Radio :value="value" :label="`第${value}组`" />

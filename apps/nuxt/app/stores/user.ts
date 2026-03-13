@@ -2,8 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getUserInfo } from '@/apis/user'
 import type { User } from '@/apis/user'
-import { AppEnv } from "@/config/env";
-import Toast from "@/components/base/toast/Toast";
+import { AppEnv } from '@/config/env'
+import { Toast } from '@typewords/base'
 
 export const useUserStore = defineStore('user', () => {
   const user = ref<User | null>(null)
@@ -57,7 +57,6 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-
   // 初始化用户状态
   async function init() {
     const success = await fetchUserInfo()
@@ -74,6 +73,6 @@ export const useUserStore = defineStore('user', () => {
     setUser,
     logout,
     fetchUserInfo,
-    init
+    init,
   }
 })

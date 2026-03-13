@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import Toast from '~/components/base/toast/Toast.ts'
+import { Toast } from '@typewords/base'
 import { useRuntimeStore } from '@/stores/runtime.ts'
 
 export const SUPABASE_CONFIG_KEY = 'supabase_config'

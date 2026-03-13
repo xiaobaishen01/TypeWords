@@ -6,16 +6,7 @@
 
 <script setup lang="ts">
 import { provide, ref, toRef } from 'vue'
-import type { FormField, FormModel, FormRules } from './types'
-
-export interface FormType {
-  validate: (cb: (vaild: boolean) => void) => void
-}
-interface Field {
-  prop: string
-  modelValue: any
-  validate: (rules: any[]) => boolean
-}
+import type { Field, FormModel, FormRules } from './types'
 
 const props = defineProps({
   model: Object as () => FormModel,

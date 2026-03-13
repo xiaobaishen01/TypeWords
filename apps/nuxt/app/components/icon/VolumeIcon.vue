@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseIcon from "~/components/base/BaseIcon.vue";
+import { BaseIcon } from '@typewords/base'
 
 const props = withDefaults(defineProps<{
   time?: number,

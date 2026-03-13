@@ -2,7 +2,7 @@
 import type { Article } from '~/types/types.ts'
 import { ref, watch } from 'vue'
 import { get } from 'idb-keyval'
-import Audio from '~/components/base/Audio.vue'
+import { Audio } from '@typewords/base'
 import { ENV, LOCAL_FILE_KEY } from '~/config/env.ts'
 
 const props = defineProps<{

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue'
-import Tooltip from '@/components/base/Tooltip.vue'
+import { Tooltip } from '@typewords/base'
 import { useEventListener } from '@/hooks/event'
 import { useI18n } from 'vue-i18n'
 
-import BaseButton from '~/components/base/BaseButton.vue'
+import { BaseButton } from '@typewords/base'
 import { useRuntimeStore } from '@/stores/runtime'
 
 export interface ModalProps {

@@ -1,18 +1,15 @@
 <script setup lang="ts">
-
-import { APP_NAME, LIB_JS_URL, Origin } from "@/config/env.ts";
-import BaseIcon from "~/components/base/BaseIcon.vue";
+import { APP_NAME, LIB_JS_URL, Origin } from '@/config/env.ts'
+import { BaseIcon, Progress, Toast } from '@typewords/base'
 
 const Dialog = defineAsyncComponent(() => import('@/components/dialog/Dialog.vue'))
 
-import { usePracticeStore } from "@/stores/practice.ts";
-import { useBaseStore } from "@/stores/base.ts";
-import { loadJsLib, msToHourMinute } from "@/utils";
-import dayjs from "dayjs";
-import Toass from "../base/toast/Toast.ts";
-import { useUserStore } from "@/stores/user.ts";
-import Progress from "@/components/base/Progress.vue";
-import { defineAsyncComponent } from "vue";
+import { usePracticeStore } from '@/stores/practice.ts'
+import { useBaseStore } from '@/stores/base.ts'
+import { loadJsLib, msToHourMinute } from '@/utils'
+import dayjs from 'dayjs'
+import { useUserStore } from '@/stores/user.ts'
+import { defineAsyncComponent } from 'vue'
 
 const practiceStore = usePracticeStore()
 const baseStore = useBaseStore()
@@ -34,7 +31,7 @@ const studyStats = $computed(() => {
     correct: practiceStore.total - practiceStore.wrong,
     time: msToHourMinute(practiceStore.spend),
     date: dayjs().format('MM月DD日'),
-    dictionary: baseStore.sdict.name || '未知词书'
+    dictionary: baseStore.sdict.name || '未知词书',
   }
 })
 
@@ -42,7 +39,7 @@ const studyStats = $computed(() => {
 async function copyImageToClipboard() {
   try {
     loading1 = true
-    const snapdom = await loadJsLib('snapdom', LIB_JS_URL.SNAPDOM);
+    const snapdom = await loadJsLib('snapdom', LIB_JS_URL.SNAPDOM)
     const blob = await snapdom.toBlob(posterEl, { scale: 2, type: 'png' })
     if (!blob) throw new Error('capture failed')
 
@@ -63,7 +60,7 @@ async function copyImageToClipboard() {
 // 下载图片
 async function downloadImage() {
   loading2 = true
-  const snapdom = await loadJsLib('snapdom', LIB_JS_URL.SNAPDOM);
+  const snapdom = await loadJsLib('snapdom', LIB_JS_URL.SNAPDOM)
   snapdom.download(posterEl, { scale: 2 })
   loading2 = false
 }
@@ -84,12 +81,12 @@ const sentence = $computed(() => {
   let list = [
     { en: 'Actions speak louder than words.', cn: '行动胜于言语' },
     { en: 'Keep going, never give up!', cn: '坚持就是胜利' },
-    { en: 'Where there\'s a will, there\'s a way.', cn: '有志者事竟成' },
+    { en: "Where there's a will, there's a way.", cn: '有志者事竟成' },
     { en: 'Every cloud has a silver lining.', cn: '黑暗中总有一线光明' },
     { en: 'Time heals all wounds.', cn: '时间能治愈一切创伤' },
     { en: 'Never say die.', cn: '永不言败' },
     { en: 'The best is yet to come.', cn: '最好的尚未到来' },
-    { en: 'Believe you can and you\'re halfway there.', cn: '相信你自己，你已经成功了一半' },
+    { en: "Believe you can and you're halfway there.", cn: '相信你自己，你已经成功了一半' },
     { en: 'No pain, no gain.', cn: '没有付出就没有收获' },
     { en: 'Dream big and dare to fail.', cn: '大胆梦想，勇于失败' },
     { en: 'Home is where the heart is.', cn: '心在哪里，家就在哪里' },
@@ -119,41 +116,38 @@ const sentence = $computed(() => {
 
 <template>
   <!-- 分享学习总结按钮 -->
-  <BaseIcon @click="showShareDialog = true"
-            class="bounce">
-    <IconFluentShare20Regular class="text-blue-500 hover:text-blue-600"/>
+  <BaseIcon @click="showShareDialog = true" class="bounce">
+    <IconFluentShare20Regular class="text-blue-500 hover:text-blue-600" />
   </BaseIcon>
 
   <!-- 学习总结分享图片生成对话框 -->
   <Dialog v-model="showShareDialog" title="分享">
     <div class="flex min-w-160 max-w-200 p-6 pt-0 gap-space">
       <!-- 左侧：海报预览区域 -->
-      <div ref="posterEl" class="flex-1 border-r border-gray-200 bg-gray-100 rounded-xl  overflow-hidden relative">
+      <div ref="posterEl" class="flex-1 border-r border-gray-200 bg-gray-100 rounded-xl overflow-hidden relative">
         <div class="flex p-5 gap-space flex-col justify-between relative z-2 color-white h-full box-border">
           <div class="flex flex-col flex-1 space-y-3">
             <!-- 顶部用户信息 -->
             <div class="flex items-center">
-              <div v-if="userStore.user?.username"
-                   class="w-12 h-12 bg-gray-600 rounded-full mr-3 flex items-center justify-center">
-                <IconSimpleIconsGithub class="w-6 h-6 text-white"/>
+              <div
+                v-if="userStore.user?.username"
+                class="w-12 h-12 bg-gray-600 rounded-full mr-3 flex items-center justify-center"
+              >
+                <IconSimpleIconsGithub class="w-6 h-6 text-white" />
               </div>
               <div>
                 <div class="font-semibold text-lg">{{ userStore.user?.username }}</div>
                 <div class="">{{ dayjs().format('YYYY年MM月DD日') }}</div>
               </div>
-              <div class="ml-auto text-xs">
-                Type Words | 英语学习
-              </div>
+              <div class="ml-auto text-xs">Type Words | 英语学习</div>
             </div>
 
             <div class="bg-gray-900/30 py-4 center flex-col rounded-2xl">
-              <div class="text-center mb-2 text-xl">
-                我学习了{{ studyStats.time }} {{ baseStore.sdict.name }}
-              </div>
+              <div class="text-center mb-2 text-xl">我学习了{{ studyStats.time }} {{ baseStore.sdict.name }}</div>
               <!-- Progress Overview -->
               <div class="w-90/100 flex items-center gap-space">
                 <div class="shrink-0">进度</div>
-                <Progress :percentage="studyProgress" size="normal"/>
+                <Progress :percentage="studyProgress" size="normal" />
               </div>
             </div>
 
@@ -185,19 +179,19 @@ const sentence = $computed(() => {
             <div class="flex justify-between items-end">
               <div class="space-y-2">
                 <div class="font-bold text-2xl">Type Words</div>
-                <div class="text-base  ">{{ Origin }}</div>
-                <div class="text-xs  ">一次敲击，一点进步，开源单词学习工具</div>
+                <div class="text-base">{{ Origin }}</div>
+                <div class="text-xs">一次敲击，一点进步，开源单词学习工具</div>
               </div>
               <img :src="`/imgs/share/qr.png`" class="w-20 w-20 rounded-md overflow-hidden" alt="" />
             </div>
           </div>
         </div>
 
-        <img :src="`/imgs/share/bg/${imgIndex}.jpg`" class="w-full object-cover object-center absolute top-0 " alt="" />
+        <img :src="`/imgs/share/bg/${imgIndex}.jpg`" class="w-full object-cover object-center absolute top-0" alt="" />
       </div>
 
       <!-- 右侧：分享引导区域 -->
-      <div class="flex-1 pt-0 ">
+      <div class="flex-1 pt-0">
         <div class="">
           <div class="text-2xl font-bold mb-4 flex items-center">
             <span class="mr-2">🎯</span>
@@ -223,24 +217,30 @@ const sentence = $computed(() => {
 
         <div class="space-y-4 mt-24">
           <!-- 个性化装扮 -->
-          <div @click="changeBackground"
-               class="flex items-center justify-start gap-space color-black px-6 py-3 bg-gray-200 rounded-lg cp  hover:bg-gray-300 transition-all duration-200">
-            <IconMdiSparkles class="w-4 h-4 text-yellow-500"/>
+          <div
+            @click="changeBackground"
+            class="flex items-center justify-start gap-space color-black px-6 py-3 bg-gray-200 rounded-lg cp hover:bg-gray-300 transition-all duration-200"
+          >
+            <IconMdiSparkles class="w-4 h-4 text-yellow-500" />
             换个背景
           </div>
 
           <!-- 分享战绩 -->
-          <div @click="copyImageToClipboard"
-               class="flex items-center justify-start gap-space px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white cp rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200">
-            <IconEosIconsLoading class="text-xl" v-if="loading1"/>
-            <IconFluentCopy20Regular class="w-5 h-5" v-else/>
+          <div
+            @click="copyImageToClipboard"
+            class="flex items-center justify-start gap-space px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white cp rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200"
+          >
+            <IconEosIconsLoading class="text-xl" v-if="loading1" />
+            <IconFluentCopy20Regular class="w-5 h-5" v-else />
             <span class="font-medium">复制到剪贴板</span>
           </div>
 
-          <div @click="downloadImage"
-               class="flex items-center justify-start gap-space px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white cp rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200">
-            <IconEosIconsLoading class="text-xl" v-if="loading2"/>
-            <IconFluentArrowDownload20Regular class="w-5 h-5" v-else/>
+          <div
+            @click="downloadImage"
+            class="flex items-center justify-start gap-space px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white cp rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200"
+          >
+            <IconEosIconsLoading class="text-xl" v-if="loading2" />
+            <IconFluentArrowDownload20Regular class="w-5 h-5" v-else />
             <span class="font-medium">保存高清海报</span>
           </div>
         </div>

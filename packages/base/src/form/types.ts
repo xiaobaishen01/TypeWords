@@ -1,5 +1,15 @@
 // Form 组件的 TypeScript 类型定义
 
+export interface FormType {
+  validate: (cb: (vaild: boolean) => void) => void
+}
+
+export interface Field {
+  prop: string
+  modelValue: any
+  validate: (rules: any[]) => boolean
+}
+
 // 表单字段接口
 export interface FormField {
   prop: string
@@ -38,7 +48,7 @@ export interface FormInstance {
    * @param callback 校验完成后的回调函数，接收校验结果
    */
   validate: (callback: (valid: boolean) => void) => void
-  
+
   /**
    * 校验指定字段
    * @param fieldName 要校验的字段名称
@@ -61,5 +71,5 @@ export enum ValidateStatus {
   Success = 'success',
   Error = 'error',
   Validating = 'validating',
-  Pending = 'pending'
+  Pending = 'pending',
 }

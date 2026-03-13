@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import { SoundFileOptions } from '@/config/env.ts'
 import { getAudioFileUrl, usePlayAudio } from '@/hooks/sound.ts'
-import Switch from '@/components/base/Switch.vue'
 import Select from '@/components/base/select/Select.vue'
 import Option from '@/components/base/select/Option.vue'
-import Textarea from '@/components/base/Textarea.vue'
 import VolumeIcon from '@/components/icon/VolumeIcon.vue'
-import Slider from '@/components/base/Slider.vue'
+import { Slider, Switch, Textarea } from '@typewords/base'
 import SettingItem from '@/components/setting/SettingItem.vue'
 import { useSettingStore } from '@/stores/setting.ts'
 import { useBaseStore } from '@/stores/base.ts'
-import {ShortcutKey} from "@/types/enum.ts";
+import { ShortcutKey } from '@/types/enum.ts'
 
 const settingStore = useSettingStore()
 const store = useBaseStore()
@@ -27,10 +25,7 @@ const simpleWords = $computed({
 
 <template>
   <div>
-    <SettingItem
-      :title="$t('ignore_case')"
-      desc="开启后，输入时不区分大小写，如输入“hello”和“Hello”都会被认为是正确的"
-    >
+    <SettingItem :title="$t('ignore_case')" desc="开启后，输入时不区分大小写，如输入“hello”和“Hello”都会被认为是正确的">
       <Switch v-model="settingStore.ignoreCase" />
     </SettingItem>
 
@@ -42,10 +37,7 @@ const simpleWords = $computed({
     </SettingItem>
 
     <div class="line"></div>
-    <SettingItem
-      :title="$t('simple_word_filter')"
-      :desc="$t('simple_word_filter_desc')"
-    >
+    <SettingItem :title="$t('simple_word_filter')" :desc="$t('simple_word_filter_desc')">
       <Switch v-model="settingStore.ignoreSimpleWord" />
     </SettingItem>
 
@@ -75,12 +67,7 @@ const simpleWords = $computed({
     </SettingItem>
     <SettingItem :title="$t('keyboard_sound_effect')">
       <Select v-model="settingStore.keyboardSoundFile" :placeholder="$t('please_select')" class="w-50!">
-        <Option
-          v-for="item in SoundFileOptions"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        >
+        <Option v-for="item in SoundFileOptions" :key="item.value" :label="item.label" :value="item.value">
           <div class="flex justify-between items-center w-full">
             <span>{{ item.label }}</span>
             <VolumeIcon :time="100" @click="usePlayAudio(getAudioFileUrl(item.value)[0])" />

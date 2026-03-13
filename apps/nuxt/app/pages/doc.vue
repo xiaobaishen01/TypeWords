@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import BasePage from '~/components/base/BasePage.vue'
-import BaseButton from '~/components/base/BaseButton.vue'
+import { BaseButton } from '@typewords/base'
 import ResourceCard from '@/components/ResourceCard.vue'
 import { APP_NAME, Origin } from '~/config/env.ts'
 

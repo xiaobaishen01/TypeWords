@@ -13,6 +13,6 @@
     "i18n:write": "gulp i18nWrite"
   },
   "dependencies": {
-    "@typewords/ui": "workspace:*"
+    "@typewords/base": "workspace:*"
   }
 }

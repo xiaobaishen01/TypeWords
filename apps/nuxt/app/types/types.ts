@@ -1,5 +1,5 @@
 import { DictType, PracticeArticleWordType } from '@/types/enum'
-import type { Card, Rating, RecordLogItem, ReviewLog } from 'ts-fsrs'
+import type { Card, Rating } from 'ts-fsrs'
 
 export type Word = {
   id?: string

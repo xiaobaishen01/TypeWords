@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import type { Dict } from '@/types/types'
-import Progress from '@/components/base/Progress.vue'
-// import Checkbox from '@/components/base/checkbox/Checkbox.vue'
-import { Checkbox } from '@typewords/ui/components/baase'
-// import { Checkbox } from '@typewords/ui/components/baase/index.ts'
-// import { Radio } from '@typewords/ui/components/baase/index.ts'
+import { Checkbox, Progress } from '@typewords/base'
 
 interface IProps {
   item?: Partial<Dict>

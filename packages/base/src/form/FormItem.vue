@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import {inject, onMounted, ref, useSlots} from 'vue'
+import { inject, onMounted, ref, useSlots } from 'vue'
 
 const props = defineProps({
   prop: String,
@@ -57,7 +57,7 @@ const validate = (rules, isBlur = false) => {
 
 // 自动触发 blur 校验
 function handleBlur() {
-  const blurRules = myRules.filter((r) => r.trigger === 'blur')
+  const blurRules = myRules.filter(r => r.trigger === 'blur')
   if (blurRules.length) validate(blurRules, true)
 }
 
@@ -67,11 +67,10 @@ function handChange() {
 
 // 注册到 Form
 onMounted(() => {
-  registerField && registerField({prop: props.prop, modelValue: value, validate})
+  registerField && registerField({ prop: props.prop, modelValue: value, validate })
 })
 
 let slot = useSlots()
-
 
 function patchVNode(vnode, patchFn) {
   if (!vnode) return vnode
@@ -89,7 +88,6 @@ function patchVNode(vnode, patchFn) {
   return vnode
 }
 
-
 defineRender(() => {
   let DefaultNode: any = slot.default()[0]
 
@@ -101,21 +99,26 @@ defineRender(() => {
         ...vnode.props,
         error: !!error,
         onBlur: handleBlur,
-        onChange: handChange
+        onChange: handChange,
       },
     }
   })
 
-  return <div class="form-item   flex gap-space">
-    {props.label &&
-      <label class="w-20 flex items-start mt-1 justify-end">
-        {myRules.length ? <span class="form-error">*</span> : null} {props.label}
-      </label>}
-    <div class="flex-1 relative">
-      <DefaultNode/>
-      <div class="form-error my-0.5 anim" style={{opacity: error ? 1 : 0}}>{error} &nbsp;</div>
+  return (
+    <div class="form-item   flex gap-space">
+      {props.label && (
+        <label class="w-20 flex items-start mt-1 justify-end">
+          {myRules.length ? <span class="form-error">*</span> : null} {props.label}
+        </label>
+      )}
+      <div class="flex-1 relative">
+        <DefaultNode />
+        <div class="form-error my-0.5 anim" style={{ opacity: error ? 1 : 0 }}>
+          {error} &nbsp;
+        </div>
+      </div>
     </div>
-  </div>
+  )
 })
 </script>
 

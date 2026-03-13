@@ -1,18 +1,16 @@
 <script setup lang="ts">
-
-import BaseButton from "~/components/base/BaseButton.vue";
-import {sendCode} from "@/apis/user.ts";
-import {PHONE_CONFIG} from "@/config/auth.ts";
-import Toast from "@/components/base/toast/Toast.ts";
-import {CodeType} from "@/types/enum.ts";
-import { useI18n } from 'vue-i18n';
-const { t: $t } = useI18n();
+import { BaseButton, Toast } from '@typewords/base'
+import { sendCode } from '@/apis/user.ts'
+import { PHONE_CONFIG } from '@/config/auth.ts'
+import { CodeType } from '@/types/enum.ts'
+import { useI18n } from 'vue-i18n'
+const { t: $t } = useI18n()
 
 let isSendingCode = $ref(false)
 let codeCountdown = $ref(0)
 
 interface IProps {
-  validateField: Function,
+  validateField: Function
   type: CodeType
   val: any
   size?: any
@@ -28,7 +26,7 @@ async function sendVerificationCode() {
   if (res) {
     try {
       isSendingCode = true
-      const res = await sendCode({val: props.val, type: props.type})
+      const res = await sendCode({ val: props.val, type: props.type })
       if (res.success) {
         codeCountdown = PHONE_CONFIG.sendInterval
         const timer = setInterval(() => {
@@ -48,7 +46,6 @@ async function sendVerificationCode() {
     }
   }
 }
-
 </script>
 
 <template>
@@ -59,10 +56,8 @@ async function sendVerificationCode() {
     :size="props.size"
     style="border: 1px solid var(--color-input-border)"
   >
-    {{ codeCountdown > 0 ? `${codeCountdown}s` : (isSendingCode ? $t('sending') : $t('send_code')) }}
+    {{ codeCountdown > 0 ? `${codeCountdown}s` : isSendingCode ? $t('sending') : $t('send_code') }}
   </BaseButton>
 </template>
 
-<style scoped lang="scss">
-
-</style>
+<style scoped lang="scss"></style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Tooltip from './baase/Tooltip.vue'
+import Tooltip from './Tooltip.vue'
 
 interface IProps {
   keyboard?: string
@@ -51,6 +51,7 @@ html.dark {
 
 <style scoped lang="scss">
 .base-button {
+  position: relative;
   cursor: pointer;
   box-sizing: border-box;
   display: inline-flex;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import BaseIcon from "~/components/base/BaseIcon.vue";
+import { BaseIcon } from '@typewords/base'
 import { useAttrs } from "vue";
 import { useNav } from "~/utils";
 

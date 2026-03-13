@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { addStat, setUserDictProp } from '@/apis'
-import Toast from '@/components/base/toast/Toast.ts'
-import Tooltip from '@/components/base/Tooltip.vue'
-import BaseIcon from '~/components/base/BaseIcon.vue'
+import { BaseIcon, Tooltip, Toast } from '@typewords/base'
 import ConflictNotice from '~/components/dialog/ConflictNotice.vue'
 import ArticleList from '@/components/list/ArticleList.vue'
 import Panel from '@/components/Panel.vue'

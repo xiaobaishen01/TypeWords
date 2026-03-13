@@ -30,8 +30,8 @@ importers:
         specifier: ^14.0.0-alpha.0
         version: 14.0.0-alpha.0(vue@3.5.27(typescript@5.9.3))
       axios:
-        specifier: ^1.12.0
-        version: 1.13.3
+        specifier: ^1.13.5
+        version: 1.13.6
       compromise:
         specifier: ^14.14.4
         version: 14.14.5
@@ -247,7 +247,11 @@ importers:
         specifier: ^0.18.5
         version: 0.18.5
 
-  apps/nuxt: {}
+  apps/nuxt:
+    dependencies:
+      '@typewords/base':
+        specifier: workspace:*
+        version: link:../../packages/base
 
   apps/vscode:
     devDependencies:
@@ -278,9 +282,9 @@ importers:
 
   apps/vscode-web:
     dependencies:
-      '@typewords/ui':
+      '@typewords/base':
         specifier: workspace:*
-        version: link:../../packages/ui
+        version: link:../../packages/base
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
@@ -304,7 +308,7 @@ importers:
         specifier: ^1.2.3
         version: 1.2.3
 
-  packages/ui: {}
+  packages/base: {}
 
 packages:
 
@@ -3926,8 +3930,8 @@ packages:
   aws4@1.13.2:
     resolution: {integrity: sha512-lHe62zvbTB5eEABUVi/AwVh0ZKY9rMMDhmm+eeyuuUQbQ3+J+fONVQOZyj+DdrvD4BY33uYniyRJ4UJIaSKAfw==}
 
-  axios@1.13.3:
-    resolution: {integrity: sha512-ERT8kdX7DZjtUm7IitEyV7InTHAF42iJuMArIiDIV5YtPanJkgw4hw5Dyg9fh0mihdWNn1GKaeIWErfe56UQ1g==}
+  axios@1.13.6:
+    resolution: {integrity: sha512-ChTCHMouEe2kn713WHbQGcuYrr6fXTBiu460OTwWrWob16g1bXn4vtz07Ope7ewMozJAnEquLk5lWQWtBig9DQ==}
 
   b4a@1.7.3:
     resolution: {integrity: sha512-5Q2mfq2WfGuFp3uS//0s6baOJLMoVduPYVeNmDYxu5OUA1/cBfvr2RIS7vi62LdNj/urk1hfmj867I3qt6uZ7Q==}
@@ -8975,7 +8979,7 @@ snapshots:
     dependencies:
       acorn: 8.15.0
       acorn-walk: 8.3.4
-      axios: 1.13.3
+      axios: 1.13.6
     transitivePeerDependencies:
       - debug
 
@@ -12475,7 +12479,7 @@ snapshots:
 
   aws4@1.13.2: {}
 
-  axios@1.13.3:
+  axios@1.13.6:
     dependencies:
       follow-redirects: 1.15.11
       form-data: 4.0.5

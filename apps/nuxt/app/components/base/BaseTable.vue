@@ -1,20 +1,18 @@
 <script setup lang="tsx">
 import { nextTick, onMounted, useSlots } from 'vue'
 import { useI18n } from 'vue-i18n'
-const { t: $t } = useI18n()
 import MiniDialog from '~/components/dialog/MiniDialog.vue'
-import BaseIcon from '~/components/base/BaseIcon.vue'
-import BaseButton from '~/components/base/BaseButton.vue'
+import { BaseButton, BaseIcon, Checkbox, PopConfirm } from '@typewords/base'
 import { debounce } from '~/utils'
-import PopConfirm from '~/components/base/PopConfirm.vue'
 import Empty from '~/components/Empty.vue'
 import Pagination from '~/components/base/Pagination.vue'
-import Checkbox from '~/components/base/checkbox/Checkbox.vue'
 import DeleteIcon from '~/components/icon/DeleteIcon.vue'
 import Dialog from '~/components/dialog/Dialog.vue'
 import BaseInput from '~/components/base/BaseInput.vue'
-import { ENV, Host } from '~/config/env.ts'
+import { ENV } from '~/config/env.ts'
 import { Sort } from '~/types/enum.ts'
+
+const { t: $t } = useI18n()
 
 const props = withDefaults(
   defineProps<{
@@ -209,7 +207,10 @@ defineRender(() => {
                   </span>
                 </div>
               ) : (
-                <div>{params.total}{$t('total_items')}</div>
+                <div>
+                  {params.total}
+                  {$t('total_items')}
+                </div>
               )}
 
               <div class="flex gap-2 relative">
@@ -311,14 +312,19 @@ defineRender(() => {
           <div class="color-red">{$t('import_word_required')}</div>
           <div>{$t('import_translation_hint')}</div>
           <div>
-            {$t('import_example_hint')}<span class="color-red">{$t('two')}</span>{$t('lines')}
+            {$t('import_example_hint')}
+            <span class="color-red">{$t('two')}</span>
+            {$t('lines')}
           </div>
           <div>
-            {$t('import_phrase_hint')}<span class="color-red">{$t('two')}</span>{$t('lines')}
+            {$t('import_phrase_hint')}
+            <span class="color-red">{$t('two')}</span>
+            {$t('lines')}
           </div>
           <div>{$t('import_other_hint')}</div>
           <div class="mt-6">
-            {$t('template_download')}：<a href={`${ENV.RESOURCE_URL}/libs/单词导入模板.xlsx`}>{$t('word_import_template')}</a>
+            {$t('template_download')}：
+            <a href={`${ENV.RESOURCE_URL}/libs/单词导入模板.xlsx`}>{$t('word_import_template')}</a>
           </div>
           <div class="mt-4">
             <BaseButton

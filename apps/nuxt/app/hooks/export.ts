@@ -11,7 +11,7 @@ import {
 import { get } from 'idb-keyval'
 import saveAs from 'file-saver'
 import dayjs from 'dayjs'
-import Toast from '@/components/base/toast/Toast'
+import { Toast } from '@typewords/base'
 import { useBaseStore } from '@/stores/base'
 import { useSettingStore } from '@/stores/setting'
 import { ref } from 'vue'

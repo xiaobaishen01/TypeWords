@@ -1,26 +1,21 @@
 <script setup lang="ts">
 import type { Article, Sentence } from '~/types/types.ts'
-import BaseButton from '~/components/base/BaseButton.vue'
+import { BaseButton, BaseIcon, InputNumber, Tooltip, Textarea, Toast } from '@typewords/base'
 import EditAbleText from '~/components/EditAbleText.vue'
 import { getNetworkTranslate, getSentenceAllText, getSentenceAllTranslateText } from '~/hooks/translate.ts'
 import { genArticleSectionData, splitCNArticle2, splitEnArticle2, usePlaySentenceAudio } from '~/hooks/article.ts'
 import { _nextTick, _parseLRC, cloneDeep, last } from '~/utils'
 import { defineAsyncComponent, watch } from 'vue'
 import Empty from '~/components/Empty.vue'
-import Toast from '~/components/base/toast/Toast.ts'
 import * as Comparison from 'string-comparison'
-import BaseIcon from '~/components/base/BaseIcon.vue'
 import { getDefaultArticle } from '~/types/func.ts'
 import copy from 'copy-to-clipboard'
 import Select from '~/components/base/select/Select.vue'
 import Option from '~/components/base/select/Option.vue'
-import Tooltip from '~/components/base/Tooltip.vue'
-import InputNumber from '~/components/base/InputNumber.vue'
 import { nanoid } from 'nanoid'
 import { update } from 'idb-keyval'
 import ArticleAudio from '~/components/article/ArticleAudio.vue'
 import BaseInput from '~/components/base/BaseInput.vue'
-import Textarea from '~/components/base/Textarea.vue'
 import { LOCAL_FILE_KEY } from '~/config/env.ts'
 import { TranslateEngine } from '~/types/enum.ts'
 import { useI18n } from 'vue-i18n'
@@ -382,7 +377,9 @@ function minusStartTime(val: Sentence) {
         />
       </div>
       <div class="flex justify-between">
-        <span>{{ $t('content') }}：<span class="text-sm color-gray">{{ $t('one_sentence_per_line') }}</span></span>
+        <span
+          >{{ $t('content') }}：<span class="text-sm color-gray">{{ $t('one_sentence_per_line') }}</span></span
+        >
         <Tooltip :title="$t('name_config_tip')">
           <div @click="showNameDialog = true" class="center gap-1 cp">
             <span>{{ $t('name_config') }}</span>
@@ -406,13 +403,15 @@ function minusStartTime(val: Sentence) {
               <ol class="py-0 pl-5 my-0 text-base color-main">
                 <li>{{ $t('copy_and_split') }}</li>
                 <li>
-                  {{ $t('click') }} <span class="color-red font-bold">{{ $t('split_sentence') }}</span> {{ $t('auto_split') }}<span class="color-red font-bold">
-                    {{ $t('or') }}</span
-                  >
+                  {{ $t('click') }} <span class="color-red font-bold">{{ $t('split_sentence') }}</span>
+                  {{ $t('auto_split') }}<span class="color-red font-bold"> {{ $t('or') }}</span>
                   {{ $t('manual_split') }}
                 </li>
                 <li>{{ $t('split_rule') }}</li>
-                <li>{{ $t('after_edit_click') }} <span class="color-red font-bold">{{ $t('apply') }}</span> {{ $t('sync_to_result') }}</li>
+                <li>
+                  {{ $t('after_edit_click') }} <span class="color-red font-bold">{{ $t('apply') }}</span>
+                  {{ $t('sync_to_result') }}
+                </li>
               </ol>
             </div>
           </template>
@@ -432,7 +431,9 @@ function minusStartTime(val: Sentence) {
           :placeholder="$t('please_fill_translation_title')"
         />
       </div>
-      <div class="">{{ $t('content') }}：<span class="text-sm color-gray">{{ $t('one_sentence_per_line') }}</span></div>
+      <div class="">
+        {{ $t('content') }}：<span class="text-sm color-gray">{{ $t('one_sentence_per_line') }}</span>
+      </div>
       <Textarea
         v-model="editArticle.textTranslate"
         class="h-full"
@@ -442,7 +443,9 @@ function minusStartTime(val: Sentence) {
       />
       <div class="justify-between items-center flex">
         <div class="flex gap-space items-center w-50">
-          <BaseButton @click="startNetworkTranslate" :loading="progress !== 0 && progress !== 100">{{ $t('translate') }} </BaseButton>
+          <BaseButton @click="startNetworkTranslate" :loading="progress !== 0 && progress !== 100"
+            >{{ $t('translate') }}
+          </BaseButton>
           <Select v-model="networkTranslateEngine">
             <Option v-for="item in TranslateEngineOptions" :key="item.value" :label="item.label" :value="item.value" />
           </Select>
@@ -455,13 +458,12 @@ function minusStartTime(val: Sentence) {
               <div>
                 <div class="mb-2">{{ $t('usage_guide') }}</div>
                 <ol class="py-0 pl-5 my-0 text-base color-black/60">
-                  <li>{{ $t('copy_translation_or_click') }} <span class="color-red font-bold">{{ $t('translate') }}</span></li>
                   <li>
-                    {{ $t('click') }} <span class="color-red font-bold">{{ $t('split_sentence') }}</span> {{ $t('auto_split') }}<span
-                      class="color-red font-bold"
-                    >
-                      {{ $t('or') }}</span
-                    >
+                    {{ $t('copy_translation_or_click') }} <span class="color-red font-bold">{{ $t('translate') }}</span>
+                  </li>
+                  <li>
+                    {{ $t('click') }} <span class="color-red font-bold">{{ $t('split_sentence') }}</span>
+                    {{ $t('auto_split') }}<span class="color-red font-bold"> {{ $t('or') }}</span>
                     {{ $t('manual_split') }}
                   </li>
                   <li>{{ $t('split_rule') }}</li>
@@ -489,8 +491,8 @@ function minusStartTime(val: Sentence) {
         <div class="flex-1 overflow-auto flex flex-col">
           <div class="flex justify-between bg-black/10 py-2 rounded-lt-md rounded-rt-md">
             <div class="center flex-[7]">
-              {{ $t('content') }}(
-              <span class="text-sm color-gray-500">{{ $t('editable_auto_sync') }}</span>)
+              {{ $t('content') }}( <span class="text-sm color-gray-500">{{ $t('editable_auto_sync') }}</span
+              >)
             </div>
             <div>|</div>
             <div class="center flex-[3] gap-2">
@@ -688,7 +690,13 @@ function minusStartTime(val: Sentence) {
       </div>
     </Dialog>
 
-    <Dialog :title="$t('name_management')" v-model="showNameDialog" :footer="true" @close="showNameDialog = false" @ok="saveNameList">
+    <Dialog
+      :title="$t('name_management')"
+      v-model="showNameDialog"
+      :footer="true"
+      @close="showNameDialog = false"
+      @ok="saveNameList"
+    >
       <div class="p-4 pt-0 color-main w-150 flex flex-col gap-3">
         <div class="flex justify-between items-center">
           <div class="text-base">{{ $t('name_ignore_config_desc') }}</div>

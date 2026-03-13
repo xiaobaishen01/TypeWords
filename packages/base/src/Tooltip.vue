@@ -55,16 +55,16 @@ export default {
       <Transition name="fade">
         <Teleport to="body">
           {this.show && (
-              <div ref="tip" class="tip">
-                {ReferenceNode ? <ReferenceNode/> : this.title}
-              </div>
+            <div ref="tip" class="tip">
+              {ReferenceNode ? <ReferenceNode/> : this.title}
+            </div>
           )}
         </Teleport>
       </Transition>
 
       <DefaultNode
-          onmouseenter={(e) => this.showPop(e)}
-          onmouseleave={() => this.show = false}
+        onmouseenter={(e) => this.showPop(e)}
+        onmouseleave={() => this.show = false}
       />
     </>
   }

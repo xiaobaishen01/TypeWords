@@ -1,6 +1,6 @@
-import {createVNode, render} from 'vue'
-import ToastComponent from '@/components/base/toast/ToastComponent.vue'
-import type {ToastOptions, ToastInstance, ToastService} from '@/components/base/toast/type.ts'
+import { createVNode, render } from 'vue'
+import ToastComponent from './ToastComponent.vue'
+import type { ToastOptions, ToastInstance, ToastService } from './type.ts'
 
 interface ToastContainer {
   id: string
@@ -55,7 +55,7 @@ const removeToastContainer = (id: string) => {
 }
 
 const Toast: ToastService = (options: ToastOptions | string): ToastInstance => {
-  const toastOptions = typeof options === 'string' ? {message: options} : options
+  const toastOptions = typeof options === 'string' ? { message: options } : options
   const id = `toast-${++toastIdCounter}`
 
   // 创建Toast容器
@@ -67,7 +67,7 @@ const Toast: ToastService = (options: ToastOptions | string): ToastInstance => {
     ...toastOptions,
     onClose: () => {
       removeToastContainer(id)
-    }
+    },
   })
 
   // 渲染到容器
@@ -77,7 +77,7 @@ const Toast: ToastService = (options: ToastOptions | string): ToastInstance => {
   const instance: ToastInstance = {
     close: () => {
       vnode.component?.exposed?.close?.()
-    }
+    },
   }
 
   // 添加到容器列表
@@ -85,7 +85,7 @@ const Toast: ToastService = (options: ToastOptions | string): ToastInstance => {
     id,
     container,
     instance,
-    offset: 0
+    offset: 0,
   }
 
   toastContainers.push(toastContainer)
@@ -96,19 +96,19 @@ const Toast: ToastService = (options: ToastOptions | string): ToastInstance => {
 
 // 添加类型方法
 Toast.success = (message: string, options?: Omit<ToastOptions, 'message' | 'type'>) => {
-  return Toast({message, type: 'success', ...options})
+  return Toast({ message, type: 'success', ...options })
 }
 
 Toast.warning = (message: string, options?: Omit<ToastOptions, 'message' | 'type'>) => {
-  return Toast({message, type: 'warning', ...options})
+  return Toast({ message, type: 'warning', ...options })
 }
 
 Toast.info = (message: string, options?: Omit<ToastOptions, 'message' | 'type'>) => {
-  return Toast({message, type: 'info', ...options})
+  return Toast({ message, type: 'info', ...options })
 }
 
 Toast.error = (message: string, options?: Omit<ToastOptions, 'message' | 'type'>) => {
-  return Toast({message, type: 'error', ...options})
+  return Toast({ message, type: 'error', ...options })
 }
 
 // 关闭所有消息

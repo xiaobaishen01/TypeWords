@@ -2,7 +2,7 @@
 import {computed, provide} from "vue"
 import {useSettingStore} from "@/stores/setting";
 import Close from "@/components/icon/Close.vue";
-import Tooltip from "@/components/base/Tooltip.vue";
+import { Tooltip } from '@typewords/base'
 import {ShortcutKey} from "@/types/enum";
 
 const settingStore = useSettingStore()

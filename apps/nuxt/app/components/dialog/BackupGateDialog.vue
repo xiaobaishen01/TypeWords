@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import Dialog from '@/components/dialog/Dialog.vue'
-import BaseButton from '~/components/base/BaseButton.vue'
+import { BaseButton } from '@typewords/base'
 import { useExport } from '@/hooks/export'
 import { IS_DEV } from '~/config/env.ts'
 

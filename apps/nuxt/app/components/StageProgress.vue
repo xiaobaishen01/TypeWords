@@ -33,8 +33,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import Tooltip from '@/components/base/Tooltip.vue'
-import Progress from '@/components/base/Progress.vue'
+import { Tooltip, Progress } from '@typewords/base'
 
 const props = defineProps<{
   stages: {
