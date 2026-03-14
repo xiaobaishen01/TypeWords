@@ -10,7 +10,7 @@ import Select from '~/components/base/select/Select.vue'
 import Option from '~/components/base/select/Option.vue'
 import BaseInput from '~/components/base/BaseInput.vue'
 
-import { addDict } from '~/apis'
+import { addDict } from '@typewords/core/apis'
 import { AppEnv, DictId } from '@typewords/core/config/env.ts'
 import { nanoid } from 'nanoid'
 import { DictType } from '@typewords/core/types/enum.ts'

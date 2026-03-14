@@ -37,10 +37,10 @@ import {
   WordPracticeModeNameMap,
   WordPracticeModeUrlMap,
 } from '@typewords/core/config/env.ts'
-import { myDictList } from '@/apis'
+import { myDictList } from '@typewords/core/apis'
 import PracticeWordListDialog from '~/components/word/PracticeWordListDialog.vue'
 import ShufflePracticeSettingDialog from '~/components/word/ShufflePracticeSettingDialog.vue'
-import { deleteDict } from '@/apis/dict.ts'
+import { deleteDict } from '@typewords/core/apis/dict.ts'
 import { OptionButton } from '@typewords/base'
 import { usePracticeWordPersistence } from '@typewords/core/composables/usePracticePersistence'
 import { WordPracticeMode } from '@typewords/core/types/enum.ts'

@@ -12,7 +12,7 @@ import isoWeek from 'dayjs/plugin/isoWeek'
 import { msToHourMinute } from '@typewords/core/utils'
 import ChannelIcons from '~/components/channel-icons/ChannelIcons.vue'
 import { AppEnv } from '@typewords/core/config/env.ts'
-import { addStat } from '~/apis'
+import { addStat } from '@typewords/core/apis'
 import { ShortcutKey, WordPracticeMode } from '@typewords/core/types/enum.ts'
 import { useI18n } from 'vue-i18n'
 

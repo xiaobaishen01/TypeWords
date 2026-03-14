@@ -5,7 +5,7 @@ import { shallowReactive } from 'vue'
 import { getDefaultDict } from '@typewords/core/types/func'
 import { get } from 'idb-keyval'
 import { AppEnv, DictId, SAVE_DICT_KEY } from '@typewords/core/config/env'
-import { add2MyDict, dictListVersion, myDictList } from '@/apis'
+import { add2MyDict, dictListVersion, myDictList } from '@typewords/core/apis'
 import { Toast } from '@typewords/base'
 import type { Card } from 'ts-fsrs'
 

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getUserInfo } from '@/apis/user'
-import type { User } from '@/apis/user'
+import { getUserInfo } from '@typewords/core/apis/user'
+import type { User } from '@typewords/core/apis/user'
 import { AppEnv } from '@typewords/core/config/env'
 import { Toast } from '@typewords/base'
 

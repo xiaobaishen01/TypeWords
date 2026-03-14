@@ -1,6 +1,6 @@
-import http from '@typewords/core/utils/http.ts'
+import http from '../utils/http.ts'
 
-import {CodeType} from "@typewords/core/types/enum.ts";
+import {CodeType} from '../types';
 
 // 用户登录接口
 export interface LoginParams {

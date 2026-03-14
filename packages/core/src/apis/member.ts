@@ -1,4 +1,4 @@
-import http from '@typewords/core/utils/http'
+import http from '../utils/http'
 
 export type LevelBenefits = {
   "level": {

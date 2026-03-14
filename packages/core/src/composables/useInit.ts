@@ -10,7 +10,7 @@ import {
 import { shakeCommonDict } from '../utils'
 import { PRACTICE_ARTICLE_CACHE, PRACTICE_WORD_CACHE } from '../utils/cache'
 import { del, get, set } from 'idb-keyval'
-import { syncSetting } from '~/apis'
+import { syncSetting } from '../apis'
 import { AppEnv, DictId } from '../config/env.ts'
 import { useBaseStore } from '~/stores/base.ts'
 import { useRuntimeStore } from '~/stores/runtime.ts'

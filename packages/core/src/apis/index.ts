@@ -1,8 +1,8 @@
-import http, { axiosInstance } from '@typewords/core/utils/http'
-import type { AxiosResponse } from '@typewords/core/utils/http'
+import type { AxiosResponse } from '../utils/http'
+import http, { axiosInstance } from '../utils/http'
 
-import type { Dict } from '@typewords/core/types/types.ts'
-import { cloneDeep } from '@typewords/core/utils/index.ts'
+import type { Dict } from '../types'
+import { cloneDeep } from '../utils'
 
 function remove(data?: any) {
   if (data) {

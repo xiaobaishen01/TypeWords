@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { detail } from '@/apis'
+import { detail } from '@typewords/core/apis'
 import BackIcon from '~/components/icon/BackIcon.vue'
 import { BaseButton } from '@typewords/base'
 import { BaseIcon } from '@typewords/base'
@@ -23,8 +23,8 @@ import { nanoid } from 'nanoid'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { wordDelete } from '@/apis/words.ts'
-import { copyOfficialDict } from '@/apis/dict.ts'
+import { wordDelete } from '@typewords/core/apis/words.ts'
+import { copyOfficialDict } from '@typewords/core/apis/dict.ts'
 import { PRACTICE_WORD_CACHE } from '@typewords/core/utils/cache.ts'
 import { Sort, WordPracticeMode } from '@typewords/core/types/enum.ts'
 

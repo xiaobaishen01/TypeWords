@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { myDictList } from '@/apis'
+import { myDictList } from '@typewords/core/apis'
 import { BaseButton, BaseIcon, PopConfirm, Progress, Toast } from '@typewords/base'
 import BasePage from '~/components/base/BasePage.vue'
 import Book from '@/components/Book.vue'
