@@ -20,8 +20,12 @@ import Toast from './toast/Toast.ts'
 import ToastComponent from './toast/ToastComponent.vue'
 export * from './toast/type.ts'
 import Audio from './Audio.vue'
+import Option from './select/Option.vue'
+import Select from './select/Select.vue'
 
 export {
+  Option,
+  Select,
   Audio,
   Checkbox,
   Form,

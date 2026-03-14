@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { BaseIcon, Switch } from '@typewords/base'
-import Select from '~/components/base/select/Select.vue'
-import Option from '~/components/base/select/Option.vue'
+import { BaseIcon, Switch, Option, Select } from '@typewords/base'
 import MiniDialog from '~/components/dialog/MiniDialog.vue'
 import VolumeIcon from '~/components/icon/VolumeIcon.vue'
 import { SoundFileOptions } from '@typewords/core/config/env.ts'
