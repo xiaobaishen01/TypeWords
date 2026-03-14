@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseIcon from '@/components/BaseIcon.vue'
+import { BaseIcon } from '@typewords/base'
 import SettingMiniDialog from '@/z-polyfill/SettingMiniDialog.vue'
 
 type IProps = {

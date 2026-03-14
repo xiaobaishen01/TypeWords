@@ -6,10 +6,10 @@ import DictList from '@/pages/(words)/dict-list.vue'
 import PracticeWords from '@/pages/(words)/practice-words/[id].vue'
 import WordTest from '@/pages/(words)/words-test/[id].vue'
 
-import articles from '@/pages/(articles)/articles.vue'
-import BookDetail from '@/pages/(articles)/book/index.vue'
-import BookList from '@/pages/(articles)/book-list.vue'
-import PracticeArticles from '@/pages/(articles)/practice-articles/[id].vue'
+// import articles from '@/pages/(articles)/articles.vue'
+// import BookDetail from '@/pages/(articles)/book/index.vue'
+// import BookList from '@/pages/(articles)/book-list.vue'
+// import PracticeArticles from '@/pages/(articles)/practice-articles/[id].vue'
 
 import setting from '@/pages/setting.vue'
 

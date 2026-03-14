@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useSettingStore } from '@/stores/setting'
-import BasePage from '@/components/BasePage.vue'
+import { useSettingStore } from '@typewords/core/stores/setting.ts'
+import BasePage from '@/z-polyfill/BasePage.vue'
 
 const settingStore = useSettingStore()
 defineProps<{

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import BaseIcon from '~/components/BaseIcon.vue'
-import MiniDialog from '~/components/dialog/MiniDialog.vue'
-import { useWindowClick } from '~/hooks/event.ts'
-import { useSettingStore } from '~/stores/setting.ts'
-import { emitter, EventKey } from '@typewords/utils/eventBus'
+import { BaseIcon, MiniDialog } from '@typewords/base'
+import { useWindowClick } from '@typewords/core/hooks/event.ts'
+import { useSettingStore } from '@typewords/core/stores/setting.ts'
+import { emitter, EventKey } from '@typewords/core/utils/eventBus'
 
 const settingStore = useSettingStore()
 let timer = 0

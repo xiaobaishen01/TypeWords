@@ -1,17 +1,13 @@
 <script setup lang="ts">
-import useTheme from '@/hooks/theme.ts'
-import { useSettingStore } from '@/stores/setting.ts'
 import { onMounted } from 'vue'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
-import { useInit } from '@/composables/useInit.ts'
+import { useInit } from '@typewords/core/composables/useInit.ts'
 
-const { setTheme } = useTheme()
-const settingStore = useSettingStore()
 const init = useInit()
 
 onMounted(() => {
   init()
-  setTheme(settingStore.theme)
+  document.documentElement.className = 'dark'
 })
 </script>
 
