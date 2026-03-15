@@ -572,6 +572,10 @@ function onTypeWrong() {
   if (!data.wrongWords.find((v: Word) => v.word.toLowerCase() === temp)) {
     data.wrongWords.push(word)
   }
+  let rIndex = data.excludeWords.findIndex(v => v === word.word)
+  if (rIndex > -1) {
+    data.excludeWords.splice(rIndex, 1)
+  }
   savePracticeData('wrong')
 }
 
@@ -623,12 +627,6 @@ function onKeyDown(e: KeyboardEvent) {
   // console.log('onKeyDown', e)
   switch (e.key) {
     case 'Backspace':
-      if (settingStore.wordPracticeType === WordPracticeType.Identify) {
-        let rIndex = data.excludeWords.findIndex(v => v === word.word)
-        if (rIndex > -1) {
-          data.excludeWords.splice(rIndex, 1)
-        }
-      }
       typingRef.del()
       break
   }

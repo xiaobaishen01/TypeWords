@@ -408,6 +408,11 @@ function del() {
   if (showWordResult.value) {
     input = ''
     showWordResult.value = false
+    //如果是自测阶段，按删除键代码弄错了，需要标记为错词，同时从excludeWords里排除
+    if (settingStore.wordPracticeType === WordPracticeType.Identify) {
+      typo()
+      if (settingStore.wordSound) volumeIconRef?.play()
+    }
   } else {
     if (wrong) {
       wrong = ''
