@@ -218,8 +218,12 @@ async function initData(initVal?: TaskWords, init: boolean = false) {
     if (!d) {
       d = await wordPersistence.load()
     }
-    if (!d || !(d.practiceData && d.statStoreData)) {
+    if (!d) {
       initData(getCurrentStudyWord())
+      return
+    }
+    if (!(d.practiceData && d.statStoreData)) {
+      initData(d.taskWords)
       return
     }
     taskWords = Object.assign(taskWords, d.taskWords)

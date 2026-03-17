@@ -159,7 +159,9 @@ export interface TaskWords {
 }
 
 export interface SaveData {
-
+  val: any
+  version: number
+  updated_at: string
 }
 
 export interface Snapshot {
@@ -180,10 +182,10 @@ export interface Snapshot {
 export interface BackupData {
   version: number
   val: {
-    dict: object
-    setting: object
-    [PRACTICE_WORD_CACHE.key]: object
-    [PRACTICE_ARTICLE_CACHE.key]: object
-    [APP_VERSION.key]: object
+    dict: SaveData
+    setting: SaveData
+    [PRACTICE_WORD_CACHE.key]: SaveData
+    [PRACTICE_ARTICLE_CACHE.key]: SaveData
+    [APP_VERSION.key]: number
   }
 }

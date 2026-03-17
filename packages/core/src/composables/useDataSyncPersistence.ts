@@ -297,39 +297,6 @@ export function useDataSyncPersistence() {
     return compareResult
   }
 
-  async function forcePushAllLocalToRemote(client?: SupabaseClient | null): Promise<boolean> {
-    const sb = getSyncClient(client)
-    if (!sb) return false
-    const updated_at = new Date().toISOString()
-    const dictData = shakeCommonDict(store.$state)
-    const settingData = settingStore.$state
-    const practiceWordData = getPracticeWordCacheLocal()
-    const practiceArticleData = getPracticeArticleCacheLocal()
-
-    const rows: Array<{ type: SyncType; data: unknown; data_version: number; updated_at: string }> = [
-      { type: 'dict', data: dictData, data_version: SAVE_DICT_KEY.version, updated_at },
-      { type: 'setting', data: settingData, data_version: SAVE_SETTING_KEY.version, updated_at },
-      { type: 'practice_word', data: practiceWordData, data_version: PRACTICE_WORD_CACHE.version, updated_at },
-      { type: 'practice_article', data: practiceArticleData, data_version: PRACTICE_ARTICLE_CACHE.version, updated_at },
-    ]
-    try {
-      const { error } = await (sb as any).from('typewords_data').upsert(rows, { onConflict: 'type' })
-      if (error) {
-        Supabase.setStatus('error', error?.message ?? String(error))
-        return false
-      }
-    } catch (error) {
-      Supabase.setStatus('error', error?.message ?? String(error))
-      return false
-    }
-    await persistLocalState('dict', dictData, updated_at)
-    await persistLocalState('setting', settingData, updated_at)
-    await persistLocalState('practice_word', practiceWordData, updated_at)
-    await persistLocalState('practice_article', practiceArticleData, updated_at)
-    Supabase.setStatus('success')
-    return true
-  }
-
   async function forcePushLocalDataToRemote(data: BackupData['val'],client?: SupabaseClient | null): Promise<boolean> {
     let syncResult = true
     const updated_at = new Date().toISOString()
@@ -408,7 +375,6 @@ export function useDataSyncPersistence() {
     pullIfRemoteNewer,
     pullRemoteIfNewer,
     saveLocalAndSync,
-    forcePushAllLocalToRemote,
     forcePushLocalDataToRemote,
     pullAllRemoteToLocal,
     getLocalCompactDataByType,

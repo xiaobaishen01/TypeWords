@@ -98,8 +98,8 @@ export function usePracticeWordPersistence() {
     await dataSync.saveLocalAndSync('practice_word', compactData)
   }
 
-  function clear(): void {
-    void dataSync.saveLocalAndSync('practice_word', null)
+  async function clear() {
+    await dataSync.saveLocalAndSync('practice_word', null)
   }
 
   return { load, save, clear, fetch, getLocalDataCompact }

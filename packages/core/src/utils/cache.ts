@@ -14,8 +14,8 @@ export const PRACTICE_ARTICLE_CACHE: CacheConfig = {
 
 export type PracticeWordCache = {
   taskWords: TaskWords
-  practiceData: PracticeData
-  statStoreData: PracticeState
+  practiceData?: PracticeData
+  statStoreData?: PracticeState
 }
 
 export type PracticeWordTaskWordsStr = {

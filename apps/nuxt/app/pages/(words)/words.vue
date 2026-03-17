@@ -51,7 +51,7 @@ const runtimeStore = useRuntimeStore()
 let loading = $ref(true)
 let isSaveData = $ref(false)
 
-const shouldShowDialogPracticeMode = $ref([WordPracticeMode.Shuffle, WordPracticeMode.ShuffleWordsTest])
+const shouldShowDialogPracticeMode = [WordPracticeMode.Shuffle, WordPracticeMode.ShuffleWordsTest]
 
 useHead({
   title: APP_NAME + ' 单词',
@@ -62,7 +62,16 @@ let practiceData = $ref<PracticeWordCache>({
     new: [],
     review: [],
   },
+  practiceData: null,
+  statStoreData: null,
 } as any)
+
+function resetCacheData() {
+  isSaveData = false
+  practiceData.practiceData = null
+  practiceData.statStoreData = null
+  wordPersistence.clear()
+}
 
 // runtimeStore.globalLoading练习界面，退出时会调用一个保存，可能会卡住。当调用完成再init
 watch(
@@ -142,10 +151,9 @@ async function init() {
 }
 
 function startPractice(practiceMode: WordPracticeMode, resetCache: boolean = false): void {
-  if (resetCache) {
-    wordPersistence.clear()
-  }
-  if (shouldShowDialogPracticeMode.includes(practiceMode)) {
+  if (resetCache) resetCacheData()
+
+  if (shouldShowDialogPracticeMode.includes(practiceMode) && !isSaveData) {
     editingWordPracticeMode = practiceMode
     showShufflePracticeSettingDialog = true
     return
@@ -168,7 +176,7 @@ function startPractice(practiceMode: WordPracticeMode, resetCache: boolean = fal
       wordPracticeMode: settingStore.wordPracticeMode,
     })
     //把是否是第一次设置为false
-    settingStore.first = false
+    if (settingStore.first) settingStore.first = false
     nav(WordPracticeModeUrlMap[practiceMode] + '/' + store.sdict.id, {}, practiceData)
   } else {
     window.umami?.track('no-dict')
@@ -253,15 +261,13 @@ function check(cb: Function) {
 
 async function savePracticeSetting() {
   Toast.success('修改成功')
-  isSaveData = false
-  wordPersistence.clear()
+  resetCacheData()
   await store.changeDict(runtimeStore.editDict)
   practiceData.taskWords = getCurrentStudyWord()
 }
 
 async function onShufflePracticeSettingOk(total) {
-  isSaveData = false
-  wordPersistence.clear()
+  resetCacheData()
   settingStore.wordPracticeMode = editingWordPracticeMode
 
   window.umami?.track('startStudyWord', {
@@ -273,10 +279,13 @@ async function onShufflePracticeSettingOk(total) {
     wordPracticeMode: settingStore.wordPracticeMode,
   })
 
-  let ignoreList = [store.allIgnoreWords, store.knownWords][settingStore.ignoreSimpleWord ? 0 : 1]
+  let ignoreSet = [store.allIgnoreWordsSet, store.knownWordsSet][settingStore.ignoreSimpleWord ? 0 : 1]
   practiceData.taskWords.review = shuffle(
-    store.sdict.words.slice(0, store.sdict.lastLearnIndex).filter(v => !ignoreList.includes(v.word))
-  ).slice(0, total)
+    store.sdict.words
+      .slice(0, store.sdict.lastLearnIndex)
+      .filter(v => !ignoreSet.has(v.word))
+      .slice(0, total)
+  )
   nav(
     WordPracticeModeUrlMap[editingWordPracticeMode] + '/' + store.sdict.id,
     {},
@@ -293,7 +302,7 @@ async function saveLastPracticeIndex(e) {
   // runtimeStore.editDict.complete = e >= runtimeStore.editDict.length - 1
   showChangeLastPracticeIndexDialog = false
   isSaveData = false
-  wordPersistence.clear()
+  resetCacheData()
   await store.changeDict(runtimeStore.editDict)
   practiceData.taskWords = getCurrentStudyWord()
 }
