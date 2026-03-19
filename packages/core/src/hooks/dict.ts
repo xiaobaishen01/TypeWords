@@ -103,7 +103,7 @@ export function getCurrentStudyWord(): TaskWords {
       return getDefaultWord({ word: String(i) })
     })
   }
-  
+
   if (words?.length) {
     const settingStore = useSettingStore()
     //忽略列表：简单词或已掌握
@@ -116,17 +116,8 @@ export function getCurrentStudyWord(): TaskWords {
     const reviewRatio = settingStore.wordReviewRatio
 
     let index = 0;
-    if (!isEnd) {
-      list = words.slice(start)
-      //从start往后取perDay个单词，作为新词
-      for (let item of list) {
-        if (data.new.length >= perDay) break
-        if (!ignoreSet.has(item.word)) {
-          data.new.push(item)
-        }
-        index++
-      }
-    }
+    let newWords = words.slice(start).filter(item => !ignoreSet.has(item.word)).slice(0, perDay)
+    let reviewWords = []
     const end = start + index
 
     //如果复习比大于等于1，或者已完成，才生成复习词
@@ -137,8 +128,6 @@ export function getCurrentStudyWord(): TaskWords {
       const totalNeed = perDay * (isEnd ? reviewRatio || 1 : reviewRatio)
       const now = Date.now()
 
-      let reviewWords = []
-
       if (enableFSRS) { // FSRS 填充逻辑
         //取 due 到期的单词
         const words = Object.entries(store.fsrsData)
@@ -146,17 +135,19 @@ export function getCurrentStudyWord(): TaskWords {
             //1、这里的due字段被json序列化之后又恢复是字符串了，所以要用dayjs比较
             //2、要在当前学习这本词典里面
             // console.log(`单词：${word},到期时间：${dayjs(card.due).format('YYYY-MM-DD HH:mm:ss')}`)
-            return dayjs(card.due).valueOf() <= now && wordMap.has(word)
+            return dayjs(card.due).valueOf() <= now && wordMap.has(word) && !newWords.includes(wordMap.get(word))
           })
           .map(([word]) => word)
           .sort((a, b) => dayjs(store.fsrsData[a].due).valueOf() - dayjs(store.fsrsData[b].due).valueOf())
 
         console.log('fsrs 里 due 到期单词', words)
 
-        reviewWords = shuffle(words
-          .slice(0, totalNeed)
-          .map(word => wordMap.get(word))
-          .filter(obj => obj))
+        reviewWords = shuffle(
+          words
+            .slice(0, totalNeed)
+            .map(word => wordMap.get(word))
+            .filter(obj => obj)
+        )
       }
 
       // 固定填充逻辑
@@ -165,18 +156,18 @@ export function getCurrentStudyWord(): TaskWords {
       if (complete) {
         list = list.concat(words.slice(end).reverse())
       }
-      list = list.filter(item => !ignoreSet.has(item.word) && !data.review.includes(item))
+      list = list.filter(item => !ignoreSet.has(item.word) && !reviewWords.includes(item) && !newWords.includes(item))
       // 启用FSRS时的固定填充候选词需要过滤掉有FSRS记录的
       if (enableFSRS) {
         list = list.filter(item => !store.fsrsData[item.word])
       }
       const candidateWords = list
-      
+
       console.assert(reviewWords.length <= totalNeed)
       reviewWords = reviewWords.concat(candidateWords.slice(0, totalNeed - reviewWords.length))
-
-      data.review = reviewWords
     }
+    data.new = newWords
+    data.review = reviewWords
   }
 
   // console.log(
