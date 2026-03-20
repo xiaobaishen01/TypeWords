@@ -44,7 +44,7 @@ let showTranslate = $ref(false)
       </div>
       <div class="h-full flex flex-col gap-2" v-if="data.review.length">
         <div class="flex justify-between items-center">
-          <span class="title">复习上次 {{data.review.length}} 个</span>
+          <span class="title">{{$t('review')}}{{data.review.length}} 个</span>
         </div>
         <BaseTable
             class="overflow-auto flex-1 w-85"

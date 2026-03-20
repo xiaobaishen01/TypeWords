@@ -16,7 +16,7 @@ const map = {
     API: 'http://localhost/',
     // RESOURCE_URL: 'https://dicts.2study.top/',
     // RESOURCE_URL: '/',
-    RESOURCE_URL: 'https://files.2study.top/',
+    RESOURCE_URL: 'https://files.typewords.cc/',
   },
 }
 
@@ -69,9 +69,10 @@ export const SAVE_DICT_KEY = {
   version: 4,
 }
 //18版本，移除单独保存的 app version字段，转移到 settingStore的webAppVersion里面
+//19:修复快捷键下一个单词和跳过单词重复了
 export const SAVE_SETTING_KEY = {
   key: 'typing-word-setting',
-  version: 18,
+  version: 19,
 }
 
 //5版本，不再单独保存 app version字段
@@ -111,7 +112,8 @@ export const DefaultShortcutKeyMap = {
   [ShortcutKey.EditArticle]: 'Ctrl+E',
   [ShortcutKey.ShowWord]: 'Escape',
   [ShortcutKey.Previous]: 'Alt+⬅',
-  [ShortcutKey.Next]: 'Tab',
+  [ShortcutKey.Next]: 'Alt+➡',
+  [ShortcutKey.Ignore]: 'Tab',
   [ShortcutKey.ToggleSimple]: '`',
   [ShortcutKey.ToggleCollect]: 'Enter',
   [ShortcutKey.PreviousChapter]: 'Ctrl+⬅',
@@ -124,6 +126,7 @@ export const DefaultShortcutKeyMap = {
   [ShortcutKey.ToggleDictation]: 'Ctrl+I',
   [ShortcutKey.ToggleTheme]: 'Ctrl+Q',
   [ShortcutKey.ToggleConciseMode]: 'Ctrl+M',
+  [ShortcutKey.ToggleToolbar]: 'Ctrl+B',
   [ShortcutKey.TogglePanel]: 'Ctrl+L',
   [ShortcutKey.RandomWrite]: 'Ctrl+R',
   [ShortcutKey.KnowWord]: '1',

@@ -1,6 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode' 
+import * as vscode from 'vscode'
 
 // WebviewPanel 管理类
 class ChatPanel {
@@ -60,9 +60,9 @@ class ChatPanel {
 
   private async _getHtmlForWebview(webview: vscode.Webview) {
     const cdnUrl = 'https://vs.typewords.cc'
-    const fileUrl = 'https://files.2study.top'
+    const fileUrl = 'https://filestypewords.cc'
 
-    let s = await fetch('https://files.2study.top/libs/vs.json')
+    let s = await fetch('https://files.typewords.cc/libs/vs.json')
     let r:any = await s.json()
 
     // 生成 nonce 用于 CSP
