@@ -18,7 +18,7 @@ useDisableEventListener(() => model)
     :title="$t('important_notice')"
     footer
     padding
-    :cancel-button-text="$t('dont_remind')"
+    :cancel-button-text="$t('dont_show')"
     :confirm-button-text="$t('close')"
     @cancel="settingStore.showConflictNotice2 = false"
   >

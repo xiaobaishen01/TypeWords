@@ -7,7 +7,16 @@ import { CompareResult, DictType, getDefaultDict, getDefaultWord } from '../type
 import { useRouter } from 'vue-router'
 import { useRuntimeStore } from '../stores/runtime'
 import dayjs from 'dayjs'
-import { APP_VERSION, AppEnv, DictId, ENV, RESOURCE_PATH, SAVE_DICT_KEY, SAVE_SETTING_KEY } from '../config/env'
+import {
+  APP_VERSION,
+  AppEnv,
+  DefaultShortcutKeyMap,
+  DictId,
+  ENV,
+  RESOURCE_PATH,
+  SAVE_DICT_KEY,
+  SAVE_SETTING_KEY,
+} from '../config/env'
 import { nextTick } from 'vue'
 import { Toast } from '@typewords/base'
 import duration from 'dayjs/plugin/duration'
@@ -109,8 +118,11 @@ export async function checkAndUpgradeSaveSetting(val: any) {
       if (typeof state !== 'object') return defaultState
       state.load = false
       let version = Number(data.version)
-      if (version === 17) {
+      if (version <= 17) {
         defaultState.webAppVersion = (await get(APP_VERSION.key)) ?? APP_VERSION.version
+      }
+      if (version <= 18) {
+        defaultState.shortcutKeyMap[ShortcutKey.Next] = DefaultShortcutKeyMap[ShortcutKey.Next]
       }
       //为了保持永远是最新的快捷键选项列表，但保留住用户的自定义设置，去掉无效的快捷键选项
       //例: 2版本，可能有快捷键A。3版本没有了

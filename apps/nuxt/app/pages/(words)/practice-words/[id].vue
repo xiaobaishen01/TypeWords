@@ -791,7 +791,8 @@ useEvents([
   //当默写时，执行 show 会标记为错误，并更新卡片
   [ShortcutKey.ShowWord, throttle(show, 300)],
   [ShortcutKey.Previous, prev],
-  [ShortcutKey.Next, throttle(skip, 300)],
+  [ShortcutKey.Next, throttle(() => next(false), 300)],
+  [ShortcutKey.Ignore, throttle(skip, 300)],
   [ShortcutKey.ToggleCollect, collect],
   [ShortcutKey.ToggleSimple, toggleWordSimpleWrapper],
   [ShortcutKey.PlayWordPronunciation, play],
@@ -818,12 +819,12 @@ useEvents([
           style="left: calc(50vw + var(--aside-width) / 2 - var(--toolbar-width) / 2); width: var(--toolbar-width)"
           v-if="settingStore.showNearWord"
         >
-          <div class="relative z-2 center gap-2 cp float-left" @click="prev" v-if="prevWord">
-            <IconFluentArrowLeft16Regular class="arrow" width="22" />
-            <Tooltip :title="`上一个(${settingStore.shortcutKeyMap[ShortcutKey.Previous]})`">
+          <Tooltip :title="`上一个(${settingStore.shortcutKeyMap[ShortcutKey.Previous]})`">
+            <div class="relative z-2 center gap-2 cp float-left" @click="prev" v-if="prevWord">
+              <IconFluentArrowLeft16Regular class="arrow" width="22" />
               <div class="word">{{ prevWord.word }}</div>
-            </Tooltip>
-          </div>
+            </div>
+          </Tooltip>
 
           <div
             class="center gap-1 absolute w-full cp"
@@ -834,14 +835,14 @@ useEvents([
             <span class="">无法输入？</span>
           </div>
 
-          <div class="relative center gap-2 cp float-right mr-3" @click="next(false)" v-if="nextWord">
-            <Tooltip :title="`下一个(${settingStore.shortcutKeyMap[ShortcutKey.Next]})`">
+          <Tooltip :title="`下一个(${settingStore.shortcutKeyMap[ShortcutKey.Next]})`">
+            <div class="relative center gap-2 cp float-right mr-3" @click="next(false)" v-if="nextWord">
               <div class="word" :class="settingStore.dictation && 'word-shadow'">
                 {{ nextWord.word }}
               </div>
-            </Tooltip>
-            <IconFluentArrowRight16Regular class="arrow" width="22" />
-          </div>
+              <IconFluentArrowRight16Regular class="arrow" width="22" />
+            </div>
+          </Tooltip>
         </div>
 
         <TypeWord
