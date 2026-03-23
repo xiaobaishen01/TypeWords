@@ -1,8 +1,8 @@
 name: Deploy to EoPages Web
 
 on:
-#  push:
-#    branches: [ 'master' ]
+  #  push:
+  #    branches: [ 'master' ]
   workflow_dispatch:
 
 permissions:
@@ -31,7 +31,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Deploy to EoPages
         run: pnpm run build-web
