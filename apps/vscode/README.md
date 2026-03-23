@@ -2,65 +2,93 @@
   <img src="https://github.com/user-attachments/assets/9d626e0f-0601-4640-8981-ad66d8ac4853" alt="TypeWords" style="width: 500px;"/>
 </h1>
 
+
 <p align="center">
-  <b>Learn English, one keystroke at a time; smarter memorization, more efficient learning - an open-source word and article practice tool</b>
+  <b>学习英语，一次敲击，一点进步；记忆不再盲目，学习更高效，开源单词与文章练习工具</b>
 </p>
+ 
+## 在线访问
 
-## Online Access
+[https://typewords.cc](https://typewords.cc)   
 
-[https://typewords.cc](https://typewords.cc)
+## 如何使用
+如何打开插件：按快捷键 Ctrl + Shift + P 呼出命令面板，输入“打开Typewords”，找到对应命令，确定进入即可
 
-## Features
+基本使用和布局与网站版本相同，只有练习界面做了伪装，单词练习在最中间，需要仔细找下，找到后直接按键盘即可进行练习
 
-### Word Practice
+## 功能列表
 
-- Practice modes: Follow-along / Dictation / Self-test / Spelling from memory
-- Smart mode: Automatically calculates learning words based on memory curves, deepening memory through dictation
-- Free mode: No restrictions, plan your own learning
-- Provides phonetics, pronunciation (American/British), example sentences, phrases, synonyms, root words, etymology, error statistics, and more
+### 单词练习
 
-### Article Memorization
+- 练习模式：跟写 / 听写 / 自测 / 默写
+- 智能模式：记忆曲线自动计算学习单词，并通过默写加深记忆
+- 自由模式：不受限制，自行规划
+- 提供音标、发音（美音、英音）、例句、短语、近义词、同根词、词源、错误统计等功能
 
-- Built-in classic textbooks; you can also add or import articles with one-click translation and bilingual comparison
-- Follow-along + dictation dual modes, sentence-by-sentence input with automatic pronunciation for more efficient memorization
-- Supports listening while writing from memory to reinforce learning
+### 背文章
 
-### Favorites, Wrong Words, Mastered
+- 内置经典教材书籍，也可自行添加、导入文章，提供一键翻译、译文对照功能
+- 跟打 + 默写双模式，逐句输入，自动发音，让背诵更高效
+- 支持边听边默写，强化记忆
 
-- Words typed incorrectly while learning are automatically added to your wrong word book for later review
-- Actively add words to mastered to automatically skip them in future sessions
-- Add words to favorites for consolidation and review
+### 收藏、错词本、已掌握
 
-### Highly Customizable
+- 学习单词时输入错误自动添加到错词本，方便后续复习
+- 可主动添加到已掌握，后续学习时自动跳过
+- 可主动添加到收藏中，以便巩固复习
 
-- Rich keyboard sound effects
-- Customizable shortcuts
-- Highly configurable settings
+### 高度自由
 
-### Clean and Efficient
+- 丰富的键盘音效
+- 可自定义快捷键
+- 高度定制化的设置选项
 
-- Clean design, modern UI, ad-free
-- Refreshing interface, simple operation
-- No forced subscription to any platform
+### 简洁高效
 
-### Vocabulary Library
+- 简洁设计，现代化UI，无广告
+- 界面清爽，操作简单
+- 不强制关注任何平台
 
-Built-in commonly used vocabulary including CET-4, CET-6, GMAT, GRE, IELTS, SAT, TOEFL, Graduate English, TEM-4, TEM-8, and more.
-Designed to meet most users' vocabulary learning needs. Community contributions of additional vocabulary are welcome.
+### 词库
 
-## Running the Project
+内置了常用的 CET-4 、CET-6 、GMAT 、GRE 、IELTS 、SAT 、TOEFL 、考研英语、专业四级英语、专业八级英语等词库。
+尽可能满足大部分用户对背单词的需求，也非常欢迎社区贡献更多的词库。
 
-#### Note: This project can run standalone with data saved locally. Manual backup is required when switching devices; this does not affect normal usage.
-This project is built with `Nuxt` and requires a Node.js environment.
+## 运行 
 
-1. Install NodeJS, refer to the [official documentation](https://nodejs.org/en/download)
-2. The project is large. It's recommended to use `git clone --depth 1 https://github.com/zyronon/TypeWords.git` to clone only the latest commit. GitHub's Download ZIP feature will not work properly.
-3. In the project root directory, open a terminal and run `pnpm install` to download dependencies.
-4. Run `pnpm run dev` to start the project. The default address is [`http://localhost:5567`](http://localhost:5567)
-5. Open [`http://localhost:5567`](http://localhost:5567) in your browser to access the project.
-6. Run `pnpm run generate` to build the project files.
+本项目是基于`Nuxt`开发的，需要 node 环境来运行。
 
-## Features and Suggestions
+1. 安装 NodeJS，参考[官方文档](https://nodejs.org/en/download)
+2. 项目文件很大，推荐使用 `git clone --depth 1 https://github.com/zyronon/TypeWords.git` 命令只克隆最近一次提交。直接下载
+   Github 提供的 Download ZIP 功能是无法运行的
+3. 在项目根目录下，打开命令行，运行`pnpm install`来下载依赖。
+4. 执行`pnpm run dev`来启动项目，项目默认地址为[`http://localhost:5567`](http://localhost:5567)
+5. 在浏览器中打开[`http://localhost:5567`](http://localhost:5567)  来访问项目。
+6. 执行`pnpm run generate`打包项目文件
 
-The project is currently in early development, with new features being added continuously. If you have any suggestions or feature requests, feel free to open an `Issue`.
-If you like the design philosophy of this software, please submit a `PR`. Thank you for your support!
+## 打包插件
+执行以下命令打包成 vsix 文件，会在根目录下生成「typewords-版本号.vsix」文件，然后就可以在 publisher 控制台上传到应用市场了，发布完后要过几分钟才能在应用市场搜索到
+vsce package
+ 
+## Cursor\本地安装插件
+点击左侧的「扩展」按钮或快捷键「command + shift + x」来打开扩展
+点击右上角的「...」
+点击「从 VSIX 安装...」
+选择之前生成的「typewords-版本号.vsix」文件即可
+
+## 功能与建议
+
+目前项目处于开发初期，新功能正在持续添加中，如果你对软件有任何功能与建议，欢迎在 `Issues` 中提出
+如果你也喜欢本软件的设计思想，欢迎提交 `Pr`，非常感谢你对我们的支持！
+
+## 贡献指南
+
+[贡献准则](/docs//CONTRIBUTING.md)
+
+如果您对本项目感兴趣，我们非常欢迎参与到项目的贡献中，我们会尽可能地提供帮助
+
+在贡献前，我们希望您能与开发者进行沟通，以避免代码冲突
+
+再次感谢您对项目的贡献！🎉
+
+

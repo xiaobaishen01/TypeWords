@@ -72,7 +72,7 @@ Designed to meet most users' vocabulary learning needs. Community contributions 
 
 #### Note: This project can run standalone with data saved locally. Manual backup is required when switching devices; this does not affect normal usage.
 
-### Option 1: Using Docker (Recommended)
+### Option 1: Using Docker
 
 The easiest way to run TypeWords is using Docker:
 
