@@ -200,7 +200,7 @@ const stages = $computed(() => {
         <div class="stat">
           <div class="row">
             <Tooltip title="进度 / 单词数">
-              <div class="num">{{ `${practiceData.index + 1}/${practiceData.words.length}` }}</div>
+              <div class="num">{{ `${practiceData.index + 1} / ${practiceData.words.length}` }}</div>
             </Tooltip>
             <div class="line"></div>
             <div class="name">{{ status }}</div>
@@ -217,9 +217,9 @@ const stages = $computed(() => {
             <div class="name">{{ $t('total_words') }}</div>
           </div>
           <div class="row">
-            <Tooltip title="当前错误数 / 总错误数">
+            <Tooltip title="当前错误数 | 总错误数">
               <div class="num">
-                {{ format(practiceData.wrongWords.length, '', 0) }} / {{ format(statStore.wrong, '', 0) }}
+                {{ format(practiceData.wrongWords.length, '', 0) }} | {{ format(statStore.wrong, '', 0) }}
               </div>
             </Tooltip>
             <div class="line"></div>
