@@ -45,6 +45,7 @@ import { ShortcutKey, WordPracticeMode, WordPracticeStage, WordPracticeType } fr
 import ConflictNotice2 from '@typewords/core/components/dialog/ConflictNotice2.vue'
 import { createEmptyCard, Rating } from 'ts-fsrs'
 import { useGetGradeByWrongTimes, useNextCard } from '@typewords/core/hooks/fsrs'
+import WordMarkPickList, { type WordMarkPickResult } from '@typewords/core/components/word/WordMarkPickList.vue'
 
 const { toggleWordCollect, isWordSimple, toggleWordSimple } = useWordOptions()
 const settingStore = useSettingStore()
@@ -430,8 +431,18 @@ function complete() {
 
 function next(isTyping: boolean = true, ignoreLoop = false) {
   let temp = word.word.toLowerCase()
+  let preTimes = data.wrongTimesMap[temp] ?? 0
 
-  data.wrongTimesMap[temp] = (data.wrongTimesMap[temp] ?? 0) + data.wrongTimes
+  // 优化：为了加快流程，将一次拼写成功的单词移出错词列表，后续不再安排重复练习
+  // 如果在拼写阶段，一次拼写成功，并且之前有错误记录的。将单词从错词列表里面移除
+  if (settingStore.wordPracticeType === WordPracticeType.Spell && data.wrongTimes === 0 && preTimes) {
+    let rIndex = data.wrongWords.findIndex(v => v.word.toLowerCase() === temp)
+    if (rIndex >= 0) {
+      data.wrongWords.splice(rIndex, 1)
+    }
+  }
+
+  data.wrongTimesMap[temp] = preTimes + data.wrongTimes
   data.wrongTimes = 0
 
   // debugger
@@ -785,6 +796,26 @@ watch(isIniting, n => {
   }
 })
 
+function onWordMarkPickComplete(result: WordMarkPickResult) {
+  console.log(result)
+  if (result.unknown.length > 0) {
+    data.isTypingWrongWord = true
+    settingStore.wordPracticeType = WordPracticeType.FollowWrite
+    console.log('当前学完了，但还有错词')
+    data.words = shuffle(cloneDeep(result.unknown))
+    data.index = 0
+    data.wrongWords = []
+
+    data.allWrongWords = data.allWrongWords.concat(result.unknown.map(v => v.word.toLowerCase()))
+    result.unknown.forEach(v => {
+      data.wrongTimesMap[v.word.toLowerCase()] = 1
+    })
+  } else {
+    data.words = []
+    next(false)
+  }
+}
+
 useEvents([
   [EventKey.repeatStudy, repeat],
   [EventKey.continueStudy, continueStudy],
@@ -804,7 +835,7 @@ useEvents([
   [ShortcutKey.ToggleDictation, () => (settingStore.dictation = !settingStore.dictation)],
   [ShortcutKey.ToggleTheme, toggleTheme],
   [ShortcutKey.ToggleConciseMode, toggleConciseMode],
-  [ShortcutKey.ToggleToolbar,  () => (settingStore.showToolbar = !settingStore.showToolbar)],
+  [ShortcutKey.ToggleToolbar, () => (settingStore.showToolbar = !settingStore.showToolbar)],
   [ShortcutKey.TogglePanel, () => (settingStore.showPanel = !settingStore.showPanel)],
   [ShortcutKey.RandomWrite, randomWrite],
 ])
@@ -814,48 +845,55 @@ useEvents([
   <PracticeLayout v-loading="loading" panelLeft="var(--word-panel-margin-left)">
     <template v-slot:practice>
       <div class="practice-word mb-50">
-        <!--        前后单词-->
-        <div
-          class="fixed z-1 top-4 w-full"
-          style="left: calc(50vw + var(--aside-width) / 2 - var(--toolbar-width) / 2); width: var(--toolbar-width)"
-          v-if="settingStore.showNearWord"
-        >
-          <Tooltip :title="`上一个(${settingStore.shortcutKeyMap[ShortcutKey.Previous]})`">
-            <div class="relative z-2 center gap-2 cp float-left" @click="prev" v-if="prevWord">
-              <IconFluentArrowLeft16Regular class="arrow" width="22" />
-              <div class="word">{{ prevWord.word }}</div>
-            </div>
-          </Tooltip>
-
-          <div
-            class="center gap-1 absolute w-full cp"
-            v-if="settingStore.showConflictNotice2"
-            @click="showConflictNotice2 = true"
-          >
-            <IconFluentQuestionCircle20Regular />
-            <span class="">无法输入？</span>
-          </div>
-
-          <Tooltip :title="`下一个(${settingStore.shortcutKeyMap[ShortcutKey.Next]})`">
-            <div class="relative center gap-2 cp float-right mr-3" @click="next(false)" v-if="nextWord">
-              <div class="word" :class="settingStore.dictation && 'word-shadow'">
-                {{ nextWord.word }}
-              </div>
-              <IconFluentArrowRight16Regular class="arrow" width="22" />
-            </div>
-          </Tooltip>
-        </div>
-
-        <TypeWord
-          ref="typingRef"
-          :word="word"
-          @wrong="onTypeWrong"
-          @complete="next"
-          @mastered="toggleWordSimpleWrapper"
-          @know="onWordKnow"
-          @skip="skip"
-          @toggle-simple="toggleWordSimpleWrapper"
+        <WordMarkPickList
+          v-if="settingStore.wordPracticeType === WordPracticeType.Identify && data.wrongWords.length === 0"
+          :words="data.words"
+          @complete="onWordMarkPickComplete"
         />
+
+        <template v-else>
+          <!--        前后单词-->
+          <div
+            class="fixed z-1 top-4 w-full"
+            style="left: calc(50vw + var(--aside-width) / 2 - var(--toolbar-width) / 2); width: var(--toolbar-width)"
+            v-if="settingStore.showNearWord"
+          >
+            <Tooltip :title="`上一个(${settingStore.shortcutKeyMap[ShortcutKey.Previous]})`">
+              <div class="relative z-2 center gap-2 cp float-left" @click="prev" v-if="prevWord">
+                <IconFluentArrowLeft16Regular class="arrow" width="22" />
+                <div class="word">{{ prevWord.word }}</div>
+              </div>
+            </Tooltip>
+
+            <div
+              class="center gap-1 absolute w-full cp"
+              v-if="settingStore.showConflictNotice2"
+              @click="showConflictNotice2 = true"
+            >
+              <IconFluentQuestionCircle20Regular />
+              <span class="">无法输入？</span>
+            </div>
+
+            <Tooltip :title="`下一个(${settingStore.shortcutKeyMap[ShortcutKey.Next]})`">
+              <div class="relative center gap-2 cp float-right mr-3" @click="next(false)" v-if="nextWord">
+                <div class="word" :class="settingStore.dictation && 'word-shadow'">
+                  {{ nextWord.word }}
+                </div>
+                <IconFluentArrowRight16Regular class="arrow" width="22" />
+              </div>
+            </Tooltip>
+          </div>
+          <TypeWord
+            ref="typingRef"
+            :word="word"
+            @wrong="onTypeWrong"
+            @complete="next"
+            @mastered="toggleWordSimpleWrapper"
+            @know="onWordKnow"
+            @skip="skip"
+            @toggle-simple="toggleWordSimpleWrapper"
+          />
+        </template>
       </div>
     </template>
     <template v-slot:panel>
