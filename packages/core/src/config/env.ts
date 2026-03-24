@@ -73,9 +73,10 @@ export const SAVE_DICT_KEY = {
 //18版本，移除单独保存的 app version字段，转移到 settingStore的webAppVersion里面
 //19:修复快捷键下一个单词和跳过单词重复了
 //20:修复19版本未导入变量，导致抛错所有用户setting变默认值的bug
+//21:修复快捷键下一个单词和跳过单词重复了
 export const SAVE_SETTING_KEY = {
   key: 'typing-word-setting',
-  version: 20,
+  version: 21,
 }
 
 //5版本，不再单独保存 app version字段

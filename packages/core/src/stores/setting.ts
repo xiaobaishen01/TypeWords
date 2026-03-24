@@ -153,9 +153,9 @@ export const useSettingStore = defineStore('setting', {
         let configStr = await get(SAVE_SETTING_KEY.key)
         let data = await checkAndUpgradeSaveSetting(configStr)
 
-        //特殊处理
-        const shouldRefreshUpdatedAt = !!(data as any)?.__firstTimePatchedFromSnapshot ?? false
-        delete (data as any)?.__firstTimePatchedFromSnapshot
+        //如果升级了，那么要保持本地比线上新，不然会被覆盖
+        const shouldRefreshUpdatedAt = (data as any)?.__updateLocalData ?? false
+        delete (data as any)?.__updateLocalData
         if (shouldRefreshUpdatedAt) {
           await set(
             SAVE_SETTING_KEY.key,

@@ -4,7 +4,7 @@ import { AppEnv, ENV } from '../config/env.ts'
 import { Toast } from '@typewords/base'
 
 export const axiosInstance: AxiosInstance = axios.create({
-  baseURL: ENV.API,
+  // baseURL: ENV.API,
   timeout: 15000,
 })
 
