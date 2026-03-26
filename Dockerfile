@@ -1,8 +1,8 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm and git
+RUN apk add --no-cache git && corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 

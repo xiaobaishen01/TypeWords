@@ -14,6 +14,8 @@ dist
 coverage
 .cache
 apps/vscode/
-apps/vscode-web/
+apps/vscode-web/src/
+apps/vscode-web/public/
+apps/vscode-web/node_modules/
 docs/
 scripts/
