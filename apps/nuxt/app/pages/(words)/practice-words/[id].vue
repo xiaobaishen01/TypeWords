@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, provide, watch } from 'vue'
 import Statistics from '@typewords/core/components/word/Statistics.vue'
-import { useEvents, emitter, EventKey } from '@typewords/core/utils/eventBus'
+import { emitter, EventKey, useEvents } from '@typewords/core/utils/eventBus'
 import { useSettingStore } from '@typewords/core/stores/setting.ts'
 import { useRuntimeStore } from '@typewords/core/stores/runtime.ts'
 import type { Dict, PracticeData, TaskWords, Word } from '@typewords/core/types/types.ts'
@@ -16,17 +16,17 @@ import {
   _getDictDataByUrl,
   _nextTick,
   cloneDeep,
+  debounce,
   isMobile,
   loadJsLib,
   resourceWrap,
   shuffle,
   throttle,
-  debounce,
 } from '@typewords/core/utils'
 import { useRoute, useRouter } from 'vue-router'
 import Footer from '@typewords/core/components/word/Footer.vue'
 import Panel from '@typewords/core/components/Panel.vue'
-import { BaseIcon, Tooltip, Toast } from '@typewords/base'
+import { BaseIcon, Toast, Tooltip } from '@typewords/base'
 import WordList from '@typewords/core/components/list/WordList.vue'
 import TypeWord from '@typewords/core/components/word/TypeWord.vue'
 import Empty from '@typewords/core/components/Empty.vue'
@@ -853,7 +853,7 @@ useEvents([
     <template v-slot:practice>
       <div class="practice-word">
         <WordMarkPickList
-          v-if="settingStore.wordPracticeType === WordPracticeType.Identify && data.wrongWords.length === 0"
+          v-if="settingStore.wordPracticeType === WordPracticeType.Identify && data.wrongWords.length === 0 && false"
           :words="data.words"
           @complete="onWordMarkPickComplete"
         />

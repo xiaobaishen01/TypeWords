@@ -2,7 +2,7 @@
 import { usePracticeStore } from '../../stores/practice'
 import { useSettingStore } from '../../stores/setting'
 import type { PracticeData } from '../../types'
-import { BaseIcon } from '@typewords/base'
+import { BaseButton, BaseIcon } from '@typewords/base'
 import { Tooltip } from '@typewords/base'
 import SettingDialog from '../setting/SettingDialog.vue'
 import VolumeSettingMiniDialog from './VolumeSettingMiniDialog.vue'
@@ -227,6 +227,8 @@ const stages = $computed(() => {
           </div>
         </div>
         <div class="flex gap-2 justify-center items-center" id="toolbar-icons">
+<!--          <BaseButton>快速批量标记</BaseButton>-->
+
           <SettingDialog type="word" />
 
           <VolumeSettingMiniDialog />
