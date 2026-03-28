@@ -646,23 +646,17 @@ onUnmounted(() => {
       <div class="flex-1 flex flex-col gap-3 min-w-0">
         <div class="title">统计</div>
         <div class="flex flex-col sm:flex-row gap-3 items-center w-full">
-          <div
-            class="w-full sm:flex-1 rounded-xl p-4 box-border relative bg-[var(--bg-history)] border border-gray-200"
-          >
-            <div class="text-[#409eff] text-xl font-bold">{{ todayTotalSpend }}</div>
-            <div class="text-gray-500">{{ $t('today_study_time') }}</div>
+          <div class="stat2">
+            <div class="num">{{ todayTotalSpend }}</div>
+            <div class="txt">{{ $t('today_study_time') }}</div>
           </div>
-          <div
-            class="w-full sm:flex-1 rounded-xl p-4 box-border relative bg-[var(--bg-history)] border border-gray-200"
-          >
-            <div class="text-[#409eff] text-xl font-bold">{{ totalDay }}</div>
-            <div class="text-gray-500">{{ $t('total_study_days') }}</div>
+          <div class="stat2">
+            <div class="num">{{ totalDay }}</div>
+            <div class="txt">{{ $t('total_study_days') }}</div>
           </div>
-          <div
-            class="w-full sm:flex-1 rounded-xl p-4 box-border relative bg-[var(--bg-history)] border border-gray-200"
-          >
-            <div class="text-[#409eff] text-xl font-bold">{{ totalSpend }}</div>
-            <div class="text-gray-500">{{ $t('total_study_time') }}</div>
+          <div class="stat2">
+            <div class="num">{{ totalSpend }}</div>
+            <div class="txt">{{ $t('total_study_time') }}</div>
           </div>
         </div>
       </div>
@@ -780,6 +774,15 @@ onUnmounted(() => {
 
   .txt {
     @apply color-gray-500;
+  }
+}
+
+.stat2 {
+  @extend .stat;
+  @apply py-4 flex-1;
+  width: unset;
+  .num {
+    @apply text-2xl break-keep;
   }
 }
 </style>
