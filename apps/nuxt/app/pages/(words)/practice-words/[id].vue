@@ -92,11 +92,21 @@ function getDefaultPracticeData(origin?: Partial<PracticeData>, val?: Partial<Pr
 let data = $ref<PracticeData>(getDefaultPracticeData({}))
 
 watch(
-  () => data.index,
+  () => data.words,
   (newVal, oldVal) => {
-    data.question = buildQuestion(data.words[data.index], allWords)
+    updateQuestion()
   }
 )
+watch(
+  () => data.index,
+  (newVal, oldVal) => {
+    updateQuestion()
+  }
+)
+
+function updateQuestion() {
+  data.question = buildQuestion(data.words[data.index], allWords)
+}
 
 provide('practiceData', data)
 provide('practiceTaskWords', taskWords)
@@ -304,9 +314,7 @@ async function initData(initVal?: TaskWords, init: boolean = false) {
   if (!d) d = store.sdict
   if (!d?.id) return router.push('/words')
   allWords = shuffle(d.words)
-  if (!data.question) {
-    data.question = buildQuestion(data.words[data.index], allWords)
-  }
+  updateQuestion()
 
   clearInterval(timer)
   timer = setInterval(() => {
