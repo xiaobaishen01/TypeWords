@@ -134,6 +134,8 @@ export function getCurrentStudyWord(): TaskWords {
       const totalNeed = perDay * (isEnd ? reviewRatio || 1 : reviewRatio)
       const now = Date.now()
 
+      let waitRemoveFromFsrsData = []
+
       //取 due 到期的单词
       let reviewWordStrList = Object.entries(store.fsrsData)
         .filter(([word, card]) => {
@@ -141,11 +143,20 @@ export function getCurrentStudyWord(): TaskWords {
           //2、要在当前学习这本词典里面
           //3、不在新词里面
           // console.log(`单词：${word},到期时间：${dayjs(card.due).format('YYYY-MM-DD HH:mm:ss')}`)
-          return dayjs(card.due).valueOf() <= now && wordMap.has(word) && !data.new.find(v => v.word === word)
+          let isMastered = ignoreSet.has(word)
+          if (isMastered) {
+            waitRemoveFromFsrsData.push(word)
+          }
+          return (
+            !isMastered && dayjs(card.due).valueOf() <= now && wordMap.has(word) && !data.new.find(v => v.word === word)
+          )
         })
         .sort((a, b) => dayjs(a[1].due).valueOf() - dayjs(b[1].due).valueOf())
         .map(([word]) => word)
 
+      waitRemoveFromFsrsData.map(word => {
+        delete store.fsrsData[word]
+      })
       // console.log('fsrs 里 due 到期单词', reviewWordStrList)
 
       data.review = shuffle(
