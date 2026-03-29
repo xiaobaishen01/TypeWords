@@ -420,6 +420,10 @@ onMounted(() => {
   isOldHost = window.location.host === Old_Host
 })
 
+watchEffect(() => {
+  window.umami?.track('word-stat', { s: `总学习时长：${totalSpend}, 今日学习时长：${todayTotalSpend},总学习天数：${totalDay}` })
+})
+
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', onvisibilitychange)
 })
