@@ -239,7 +239,11 @@ let currentPracticeSentenceIndex = $ref(-1)
 async function onTyping(e: KeyboardEvent) {
   if (isWordTest) {
     if (e.code === 'Space') {
-      completeTypeWord(false)
+      if (completeSelect) {
+        completeTypeWord(false)
+      } else {
+        select(e, -1)
+      }
     }
     return
   }
