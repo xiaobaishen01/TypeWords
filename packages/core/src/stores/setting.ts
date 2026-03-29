@@ -67,6 +67,7 @@ export interface SettingState {
   fsrsParameters: FSRSParameters
 
   identifyMethod: IdentifyMethod
+  quickIdentify: boolean //快速标记
 }
 
 export const getDefaultSettingState = (): SettingState => ({
@@ -142,6 +143,7 @@ export const getDefaultSettingState = (): SettingState => ({
   },
 
   identifyMethod: IdentifyMethod.SelfAssessment,
+  quickIdentify: false,
 })
 
 export const useSettingStore = defineStore('setting', {

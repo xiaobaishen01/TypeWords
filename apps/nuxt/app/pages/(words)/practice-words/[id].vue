@@ -885,7 +885,11 @@ useEvents([
     <template v-slot:practice>
       <div class="practice-word">
         <WordMarkPickList
-          v-if="settingStore.wordPracticeType === WordPracticeType.Identify && data.wrongWords.length === 0 && false"
+          v-if="
+            settingStore.wordPracticeType === WordPracticeType.Identify &&
+            data.wrongWords.length === 0 &&
+            settingStore.quickIdentify
+          "
           :words="data.words"
           @complete="onWordMarkPickComplete"
         />

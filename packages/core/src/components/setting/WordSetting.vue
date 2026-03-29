@@ -46,6 +46,10 @@ const settingStore = useSettingStore()
       </RadioGroup>
     </SettingItem>
 
+    <SettingItem :title="`快速自测`">
+      <Switch v-model="settingStore.quickIdentify" />
+    </SettingItem>
+
     <!--          发音-->
     <div class="line"></div>
     <SettingItem :mainTitle="$t('sound_effect')" />
