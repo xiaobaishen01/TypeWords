@@ -34,7 +34,7 @@ const studyProgress = $computed(() => {
 <template>
   <div :id="item?.id" v-if="!isAdd">
     <div class="book overflow-hidden relative">
-      <NuxtImg class="absolute top-0 left-0 w-full object-cover" v-if="item?.cover" :src="item.cover" alt="" />
+      <img class="absolute top-0 left-0 w-full object-cover" v-if="item?.cover" :src="item.cover" alt="" />
       <div class="text-base mt-1" v-else>{{ item?.name }}</div>
       <div class="absolute bottom-4 right-3 z-1" :class="item?.cover && 'color-white'">
         <div>{{ studyProgress }}{{ item?.length }}{{ quantifier }}</div>

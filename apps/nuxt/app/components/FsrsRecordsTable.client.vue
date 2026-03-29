@@ -56,7 +56,7 @@ function formatDate(v: string | Date | null | undefined) {
       :sort-config="{
         defaultSort: {
           field: 'due',
-          order: 'desc',
+          order: 'asc',
         },
       }"
     >

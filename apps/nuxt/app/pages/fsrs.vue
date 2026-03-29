@@ -35,7 +35,7 @@ const fsrsList = computed(() => {
       <BaseButton :type="type === 'all' ? 'primary' : 'info'" @click="type = 'all'">所有记录</BaseButton>
     </div>
 
-    <FsrsRecordsTable v-if="fsrsList.length > 0" :rows="fsrsList" />
+    <FsrsRecordsTable :rows="fsrsList" />
   </div>
 </template>
 

@@ -1,24 +1,36 @@
 <script setup lang="ts">
 import { useBaseStore } from '@typewords/core/stores/base.ts'
 import { useRouter } from 'vue-router'
-import { BaseButton, BaseIcon, BasePage, OptionButton, PopConfirm, Progress, Toast } from '@typewords/base'
+import {
+  BaseButton,
+  BaseIcon,
+  BasePage,
+  Calendar,
+  Dialog,
+  OptionButton,
+  PopConfirm,
+  Progress,
+  Toast,
+} from '@typewords/base'
 import {
   _getAccomplishDate,
   _getDictDataByUrl,
   _nextTick,
   isMobile,
   loadJsLib,
+  msToHourMinute,
   resourceWrap,
   shuffle,
+  total,
   useNav,
 } from '@typewords/core/utils'
-import type { DictResource } from '@typewords/core/types/types.ts'
+import type { DictResource, Statistics } from '@typewords/core/types/types.ts'
 import { watch } from 'vue'
 import { getCurrentStudyWord } from '@typewords/core/hooks/dict.ts'
 import { useRuntimeStore } from '@typewords/core/stores/runtime.ts'
 import Book from '@typewords/core/components/Book.vue'
 import { getDefaultDict } from '@typewords/core/types/func.ts'
-import {DeleteIcon} from '@typewords/base'
+import { DeleteIcon } from '@typewords/base'
 import PracticeSettingDialog from '@typewords/core/components/word/PracticeSettingDialog.vue'
 import ChangeLastPracticeIndexDialog from '@typewords/core/components/word/ChangeLastPracticeIndexDialog.vue'
 import { useSettingStore } from '@typewords/core/stores/setting.ts'
@@ -41,6 +53,7 @@ import { deleteDict } from '@typewords/core/apis/dict.ts'
 import { usePracticeWordPersistence } from '@typewords/core/composables/usePracticePersistence'
 import { WordPracticeMode } from '@typewords/core/types/enum.ts'
 import type { PracticeWordCache } from '@typewords/core/utils/cache.ts'
+import dayjs from 'dayjs'
 
 const store = useBaseStore()
 const settingStore = useSettingStore()
@@ -201,6 +214,89 @@ let showShufflePracticeSettingDialog = $ref(false)
 let showChangeLastPracticeIndexDialog = $ref(false)
 let showPracticeWordListDialog = $ref(false)
 
+type StudyDayRow = Statistics & { dictName: string }
+
+let showStudyDayDialog = $ref(false)
+let selectedStudyDateKey = $ref('')
+let studyDayRecords = $ref<StudyDayRow[]>([])
+
+const allWordStatistics = $computed(() => store.word.bookList.flatMap(book => book.statistics ?? []))
+
+const cacheSpendMs = $computed(() => practiceData.statStoreData?.spend ?? 0)
+
+const todayDateKey = $computed(() => dayjs().format('YYYY-MM-DD'))
+
+const todayCacheMs = $computed(() => {
+  const st = practiceData.statStoreData
+  if (!st?.spend) return 0
+  return dayjs(st.startDate).isSame(dayjs(), 'day') ? st.spend : 0
+})
+
+const calendarHighlightDates = $computed(() => {
+  const set = new Set<string>()
+  for (const s of allWordStatistics) {
+    set.add(dayjs(s.startDate).format('YYYY-MM-DD'))
+  }
+  if (todayCacheMs > 0) {
+    set.add(todayDateKey)
+  }
+  return [...set]
+})
+
+/** 已落库统计总毫秒（全 bookList） */
+const persistedTotalMs = $computed(() => total(allWordStatistics, 'spend'))
+
+const totalSpend = $computed(() => {
+  const sum = persistedTotalMs + cacheSpendMs
+  if (!sum) return 0
+  return msToHourMinute(sum)
+})
+
+const todayTotalSpend = $computed(() => {
+  const todayPersistedMs = total(
+    allWordStatistics.filter(v => dayjs(v.startDate).isSame(dayjs(), 'day')),
+    'spend'
+  )
+  const sum = todayPersistedMs + todayCacheMs
+  if (!sum) return 0
+  return msToHourMinute(sum)
+})
+
+const totalDay = $computed(() => {
+  const set = new Set(allWordStatistics.map(v => dayjs(v.startDate).format('YYYY-MM-DD')))
+  if (todayCacheMs > 0) {
+    set.add(todayDateKey)
+  }
+  return set.size
+})
+
+const studyDayDialogTitle = $computed(() =>
+  selectedStudyDateKey ? `${dayjs(selectedStudyDateKey).format('YYYY年M月D日')} 学习记录` : ''
+)
+
+function isStudyDayKeyToday(dateKey: string) {
+  return dateKey === dayjs().format('YYYY-MM-DD')
+}
+
+function onSelectCalendarDate(dateKey: string) {
+  selectedStudyDateKey = dateKey
+  const rows: StudyDayRow[] = []
+  for (const book of store.word.bookList) {
+    for (const stat of book.statistics ?? []) {
+      if (dayjs(stat.startDate).format('YYYY-MM-DD') === dateKey) {
+        rows.push({ ...stat, dictName: book.name })
+      }
+    }
+  }
+  const st = practiceData.statStoreData
+  if (st?.spend && dayjs(st.startDate).format('YYYY-MM-DD') === dateKey) {
+    rows.push({ ...st, new: st.newWordNumber, review: st.reviewWordNumber, dictName: store.sdict.name })
+  }
+  if (!rows.length) return Toast.info('无学习记录')
+  studyDayRecords = rows
+  showStudyDayDialog = true
+}
+
 async function goDictDetail(val: DictResource) {
   if (!val.id) return nav('dict-list')
   runtimeStore.editDict = getDefaultDict(val)
@@ -338,7 +434,7 @@ onUnmounted(() => {
     </div>
 
     <div class="card flex flex-col md:flex-row gap-4">
-      <div class="flex-1 w-full flex flex-col justify-between">
+      <div class="flex-1 flex flex-col justify-between">
         <div class="flex gap-3">
           <div class="p-1 center rounded-full bg-white">
             <IconFluentBookNumber20Filled class="text-xl color-link" />
@@ -387,9 +483,7 @@ onUnmounted(() => {
               </BaseButton>
             </PopConfirm>
 
-            <BaseButton type="info" size="small" @click="router.push('/fsrs')">
-              学习记录
-            </BaseButton>
+            <BaseButton type="info" size="small" @click="router.push('/fsrs')"> 学习记录 </BaseButton>
           </div>
         </template>
 
@@ -403,8 +497,7 @@ onUnmounted(() => {
           </BaseButton>
         </div>
       </div>
-
-      <div class="flex-1 w-full mt-4 md:mt-0" :class="!store.sdict.id && 'opacity-30 cursor-not-allowed'">
+      <div class="flex-1 mt-4 md:mt-0" :class="!store.sdict.id && 'opacity-30 cursor-not-allowed'">
         <div class="flex justify-between">
           <div class="flex items-center gap-2">
             <div class="p-2 center rounded-full bg-white">
@@ -549,6 +642,34 @@ onUnmounted(() => {
       </div>
     </div>
 
+    <div class="card flex flex-col md:flex-row gap-20 p-4 md:p-6">
+      <div class="flex-1 flex flex-col gap-3 min-w-0">
+        <div class="title">统计</div>
+        <div class="flex flex-col sm:flex-row gap-3 items-center w-full">
+          <div class="stat2">
+            <div class="num">{{ todayTotalSpend }}</div>
+            <div class="txt">{{ $t('today_study_time') }}</div>
+          </div>
+          <div class="stat2">
+            <div class="num">{{ totalDay }}</div>
+            <div class="txt">{{ $t('total_study_days') }}</div>
+          </div>
+          <div class="stat2">
+            <div class="num">{{ totalSpend }}</div>
+            <div class="txt">{{ $t('total_study_time') }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="shrink-0 flex items-center">
+        <Calendar
+          :highlighted-dates="calendarHighlightDates"
+          @select-date="onSelectCalendarDate"
+          :weekHeaderTitle="$t('this_week_record')"
+        >
+        </Calendar>
+      </div>
+    </div>
+
     <div class="card flex flex-col">
       <div class="flex justify-between">
         <div class="title">{{ $t('my_dictionaries') }}</div>
@@ -622,6 +743,24 @@ onUnmounted(() => {
     @ok="onShufflePracticeSettingOk"
     :wordPracticeMode="editingWordPracticeMode"
   />
+
+  <Dialog v-model="showStudyDayDialog" :title="studyDayDialogTitle" :footer="false" :padding="true">
+    <div
+      v-if="!studyDayRecords.length && !(isStudyDayKeyToday(selectedStudyDateKey) && todayCacheMs > 0)"
+      class="text-gray-500 py-6 text-center"
+    >
+      当日无学习记录
+    </div>
+    <ul v-if="studyDayRecords.length" class="study-day-list max-h-70vh overflow-y-auto space-y-3">
+      <li v-for="(row, idx) in studyDayRecords" :key="idx" class="border-b border-gray-200 pb-3 last:border-0">
+        <div class="font-medium">{{ row.dictName }}</div>
+        <div class="text-sm text-gray-600 mt-1">
+          时长 {{ msToHourMinute(row.spend) }} · 新学 {{ row.new }} · 复习 {{ row.review }} · 错词 {{ row.wrong }}
+          <template v-if="row.total"> · 共 {{ row.total }} 词</template>
+        </div>
+      </li>
+    </ul>
+  </Dialog>
 </template>
 
 <style scoped lang="scss">
@@ -635,6 +774,15 @@ onUnmounted(() => {
 
   .txt {
     @apply color-gray-500;
+  }
+}
+
+.stat2 {
+  @extend .stat;
+  @apply py-4 flex-1;
+  width: unset;
+  .num {
+    @apply text-2xl break-keep;
   }
 }
 </style>

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { Question, Word } from '../../types'
 import { getDefaultWord, IdentifyMethod, ShortcutKey, WordPracticeType } from '../../types'
-import { useSettingStore } from '../../stores/setting'
-import { useBaseStore } from '../../stores/base'
+import { useBaseStore, useSettingStore } from '../../stores'
 import { usePlayBeep, usePlayCorrect, usePlayKeyboardAudio, usePlayWordAudio, useTTsPlayAudio } from '../../hooks/sound'
 import { emitter, EventKey, useEventsByWatch } from '../../utils/eventBus'
 import { onMounted, onUnmounted, watch } from 'vue'
@@ -17,7 +16,7 @@ const { t: $t } = useI18n()
 
 interface IProps {
   word: Word
-  question: Question
+  question?: Question
 }
 
 const props = withDefaults(defineProps<IProps>(), {
@@ -214,7 +213,7 @@ function select(e, index: number) {
   if (completeSelect) return
   if (isWordTest) {
     completeSelect = true
-    if (index == props.question.correctIndex) {
+    if (index == props?.question?.correctIndex) {
       input = props.word.word
       playCorrect()
       emit('know')
@@ -748,7 +747,7 @@ const isCollect = $computed(() => isWordCollect(props.word))
       </div>
 
       <div v-if="isWordTest && !showWordResult" class="flex gap-8 flex-col mt-16 mb-8 w-full">
-        <div v-for="(value, index) in question.candidates" class="flex gap-2 min-h-20">
+        <div v-for="(value, index) in question?.candidates ?? []" class="flex gap-2 min-h-20">
           <BaseButton
             :keyboard="`${$t('shortcut')}(${settingStore.shortcutKeyMap[[ShortcutKey.ChooseA, ShortcutKey.ChooseB, ShortcutKey.ChooseC, ShortcutKey.ChooseD][index]]})`"
             @click="e => select(e, index)"

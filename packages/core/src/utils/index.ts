@@ -228,14 +228,14 @@ export function _dateFormat(val: any, format: string = 'YYYY/MM/DD HH:mm'): stri
   return dayjs(d).format(format)
 }
 
-export function msToHourMinute(ms) {
+export function msToHourMinute(ms: number) {
   const d = dayjs.duration(ms)
-  const hours = d.hours()
-  const minutes = d.minutes()
-  const seconds = d.seconds()
+  const totalMinutes = Math.floor(d.asMinutes())
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
   if (hours) return `${hours}小时${minutes}分钟`
   if (minutes) return `${minutes}分钟`
-  return `${seconds}秒`
+  return `${Math.floor(d.asSeconds())}秒`
 }
 
 export function msToMinute(ms) {

@@ -26,11 +26,13 @@ import Pagination from './Pagination.vue'
 import MiniDialog from './MiniDialog.vue'
 import BaseOptionButton from './BaseOptionButton.vue'
 import UploadButton from './UploadButton.vue'
+import Calendar from './Calendar.vue'
 export * from './select'
 export * from './icon'
 export * from './dialog'
 
 export {
+  Calendar,
   MiniDialog,
   BaseInput,
   Pagination,

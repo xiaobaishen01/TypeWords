@@ -7,7 +7,7 @@
     </div>
     <div class="relative group">
       <div class="more w-10 rounded-r-lg h-full center box-border transition-all duration-300">
-        <IconFluentChevronDown20Regular  color="white"/>
+        <IconFluentChevronDown20Regular  color="gray"/>
       </div>
       <div
         class="space-y-2 btn-no-margin pt-2 absolute z-2 right-0 border rounded opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 pointer-events-none group-hover:pointer-events-auto"

@@ -85,7 +85,7 @@ function getDefaultPracticeData(origin?: Partial<PracticeData>, val?: Partial<Pr
     ratingMap: {},
     wrongTimes: 0,
     isTypingWrongWord: false,
-    question: null, 
+    question: null,
     ...val,
   })
 }
@@ -105,7 +105,9 @@ watch(
 )
 
 function updateQuestion() {
-  data.question = buildQuestion(data.words[data.index], allWords)
+  if (data.words?.[data.index]) {
+    data.question = buildQuestion(data.words[data.index], allWords)
+  }
 }
 
 provide('practiceData', data)
