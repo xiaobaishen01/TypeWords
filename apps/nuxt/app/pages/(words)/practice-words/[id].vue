@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, provide, watch } from 'vue'
 import Statistics from '@typewords/core/components/word/Statistics.vue'
-import { emitter, EventKey, useEvents } from '@typewords/core/utils/eventBus'
+import { useEvents, emitter, EventKey } from '@typewords/core/utils/eventBus'
 import { useSettingStore } from '@typewords/core/stores/setting.ts'
 import { useRuntimeStore } from '@typewords/core/stores/runtime.ts'
 import type { Dict, PracticeData, TaskWords, Word } from '@typewords/core/types/types.ts'
@@ -16,17 +16,17 @@ import {
   _getDictDataByUrl,
   _nextTick,
   cloneDeep,
-  debounce,
   isMobile,
   loadJsLib,
   resourceWrap,
   shuffle,
   throttle,
+  debounce,
 } from '@typewords/core/utils'
 import { useRoute, useRouter } from 'vue-router'
 import Footer from '@typewords/core/components/word/Footer.vue'
 import Panel from '@typewords/core/components/Panel.vue'
-import { BaseIcon, Toast, Tooltip } from '@typewords/base'
+import { BaseIcon, Tooltip, Toast } from '@typewords/base'
 import WordList from '@typewords/core/components/list/WordList.vue'
 import TypeWord from '@typewords/core/components/word/TypeWord.vue'
 import Empty from '@typewords/core/components/Empty.vue'
@@ -45,8 +45,6 @@ import { ShortcutKey, WordPracticeMode, WordPracticeStage, WordPracticeType } fr
 import ConflictNotice2 from '@typewords/core/components/dialog/ConflictNotice2.vue'
 import { createEmptyCard, Rating } from 'ts-fsrs'
 import { useGetGradeByWrongTimes, useNextCard } from '@typewords/core/hooks/fsrs'
-import WordMarkPickList, { type WordMarkPickResult } from '@typewords/core/components/word/WordMarkPickList.vue'
-import { buildQuestion } from '@typewords/core/utils/word-test.ts'
 
 const { toggleWordCollect, isWordSimple, toggleWordSimple } = useWordOptions()
 const settingStore = useSettingStore()
@@ -65,7 +63,10 @@ let showConflictNotice2 = $ref(false)
 let isComplete = $ref(false)
 let loading = $ref(false)
 let timer = $ref<any>(-1)
+/** 仅用于 visibilitychange 内 fetch：与 `!document.hidden` 一致 */
 let isFocus = true
+const IDLE_MS = 3 * 60 * 1000
+let lastKeyActivity = Date.now()
 let taskWords = $ref<TaskWords>({
   new: [],
   review: [],
@@ -85,33 +86,37 @@ function getDefaultPracticeData(origin?: Partial<PracticeData>, val?: Partial<Pr
     ratingMap: {},
     wrongTimes: 0,
     isTypingWrongWord: false,
-    question: null,
     ...val,
   })
 }
 let data = $ref<PracticeData>(getDefaultPracticeData({}))
 
-watch(
-  () => data.words,
-  (newVal, oldVal) => {
-    updateQuestion()
-  }
-)
-watch(
-  () => data.index,
-  (newVal, oldVal) => {
-    updateQuestion()
-  }
-)
-
-function updateQuestion() {
-  if (data.words?.[data.index]) {
-    data.question = buildQuestion(data.words[data.index], allWords)
-  }
-}
-
 provide('practiceData', data)
 provide('practiceTaskWords', taskWords)
+
+function bumpPracticeTimerActivity() {
+  lastKeyActivity = Date.now()
+}
+provide('bumpPracticeTimerActivity', bumpPracticeTimerActivity)
+
+function onPracticeTimerKeydown() {
+  if (document.visibilityState !== 'visible') return
+
+  if (!statStore.timerPaused) {
+    bumpPracticeTimerActivity()
+    return
+  }
+
+  const reason = statStore.timerPauseReason
+  if (reason === 'manual') {
+    statStore.resumeTimer()
+    bumpPracticeTimerActivity()
+    Toast.success('已恢复计时')
+  } else if (reason === 'auto_idle') {
+    statStore.resumeTimer()
+    bumpPracticeTimerActivity()
+  }
+}
 
 async function loadDict() {
   // console.log('load好了开始加载')
@@ -151,18 +156,26 @@ watch(
 
 const onvisibilitychange = async () => {
   isFocus = !document.hidden
-  if (isFocus) {
-    if (runtimeStore.globalLoading) return
-    runtimeStore.globalLoading = true
-    try {
-      const d = await wordPersistence.fetch()
-      if (d) {
-        taskWords = Object.assign(taskWords, d.taskWords)
-        data = Object.assign(data, d.practiceData)
-        statStore.$patch(d.statStoreData)
+  if (document.hidden) {
+    statStore.pauseTimerAuto('auto_visibility')
+  } else {
+    bumpPracticeTimerActivity()
+    if (statStore.timerPauseReason === 'auto_visibility') {
+      statStore.resumeTimer()
+    }
+    if (isFocus) {
+      if (runtimeStore.globalLoading) return
+      runtimeStore.globalLoading = true
+      try {
+        const d = await wordPersistence.fetch()
+        if (d) {
+          taskWords = Object.assign(taskWords, d.taskWords)
+          data = Object.assign(data, d.practiceData)
+          statStore.$patch(d.statStoreData)
+        }
+      } finally {
+        runtimeStore.globalLoading = false
       }
-    } finally {
-      runtimeStore.globalLoading = false
     }
   }
 }
@@ -181,10 +194,12 @@ onMounted(async () => {
   }
   document.removeEventListener('visibilitychange', onvisibilitychange)
   document.addEventListener('visibilitychange', onvisibilitychange)
+  window.addEventListener('keydown', onPracticeTimerKeydown)
 })
 
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', onvisibilitychange)
+  window.removeEventListener('keydown', onPracticeTimerKeydown)
   if (getPracticeWordCacheLocal()) {
     savePracticeDataIns('onUnmounted')
   }
@@ -229,8 +244,6 @@ watchOnce(
     }
   }
 )
-
-let allWords: Word[]
 
 let isIniting = ref(true)
 async function initData(initVal?: TaskWords, init: boolean = false) {
@@ -306,23 +319,24 @@ async function initData(initVal?: TaskWords, init: boolean = false) {
     statStore.inputWordNumber = 0
     statStore.wrong = 0
     statStore.spend = 0
+    statStore.resetTimerPause()
     watchStage(statStore.stage)
     watchPracticeType(settingStore.wordPracticeType)
   }
-
-  // 初始化 Question
-  let dictId: any = route.params.id
-  let d = store.word.bookList.find(v => v.id === dictId)
-  if (!d) d = store.sdict
-  if (!d?.id) return router.push('/words')
-  allWords = shuffle(d.words)
-  updateQuestion()
-
   clearInterval(timer)
+  bumpPracticeTimerActivity()
   timer = setInterval(() => {
-    if (isFocus) {
-      statStore.spend += 1000
+    if (document.visibilityState !== 'visible') return
+    if (statStore.timerPaused) return
+
+    const now = Date.now()
+    if (now - lastKeyActivity >= IDLE_MS) {
+      statStore.pauseTimerAuto('auto_idle')
+      Toast.warning('已连续 3 分钟无键盘操作，计时已暂停')
+      return
     }
+
+    statStore.spend += 1000
   }, 1000)
   isIniting.value = false
 }
@@ -463,18 +477,8 @@ function complete() {
 
 function next(isTyping: boolean = true, ignoreLoop = false) {
   let temp = word.word.toLowerCase()
-  let preTimes = data.wrongTimesMap[temp] ?? 0
 
-  // 优化：为了加快流程，将一次拼写成功的单词移出错词列表，后续不再安排重复练习
-  // 如果在拼写阶段，一次拼写成功，并且之前有错误记录的。将单词从错词列表里面移除
-  if (settingStore.wordPracticeType === WordPracticeType.Spell && data.wrongTimes === 0 && preTimes) {
-    let rIndex = data.wrongWords.findIndex(v => v.word.toLowerCase() === temp)
-    if (rIndex >= 0) {
-      data.wrongWords.splice(rIndex, 1)
-    }
-  }
-
-  data.wrongTimesMap[temp] = preTimes + data.wrongTimes
+  data.wrongTimesMap[temp] = (data.wrongTimesMap[temp] ?? 0) + data.wrongTimes
   data.wrongTimes = 0
 
   // debugger
@@ -828,33 +832,6 @@ watch(isIniting, n => {
   }
 })
 
-function onWordMarkPickComplete(result: WordMarkPickResult) {
-  result.know.map(word => {
-    data.ratingMap[word.word.toLowerCase()] = Rating.Good
-    data.excludeWords.push(word.word)
-  })
-  result.mastered.map(word => {
-    data.excludeWords.push(word.word)
-  })
-  console.log(result)
-  if (result.unknown.length > 0) {
-    data.isTypingWrongWord = true
-    settingStore.wordPracticeType = WordPracticeType.FollowWrite
-    console.log('当前学完了，但还有错词')
-    data.words = shuffle(cloneDeep(result.unknown))
-    data.index = 0
-    data.wrongWords = []
-
-    data.allWrongWords = data.allWrongWords.concat(result.unknown.map(v => v.word.toLowerCase()))
-    result.unknown.forEach(v => {
-      data.wrongTimesMap[v.word.toLowerCase()] = 1
-    })
-  } else {
-    data.words = []
-    next(false)
-  }
-}
-
 useEvents([
   [EventKey.repeatStudy, repeat],
   [EventKey.continueStudy, continueStudy],
@@ -874,7 +851,7 @@ useEvents([
   [ShortcutKey.ToggleDictation, () => (settingStore.dictation = !settingStore.dictation)],
   [ShortcutKey.ToggleTheme, toggleTheme],
   [ShortcutKey.ToggleConciseMode, toggleConciseMode],
-  [ShortcutKey.ToggleToolbar, () => (settingStore.showToolbar = !settingStore.showToolbar)],
+  [ShortcutKey.ToggleToolbar,  () => (settingStore.showToolbar = !settingStore.showToolbar)],
   [ShortcutKey.TogglePanel, () => (settingStore.showPanel = !settingStore.showPanel)],
   [ShortcutKey.RandomWrite, randomWrite],
 ])
@@ -883,61 +860,49 @@ useEvents([
 <template>
   <PracticeLayout v-loading="loading" panelLeft="var(--word-panel-margin-left)">
     <template v-slot:practice>
-      <div class="practice-word">
-        <WordMarkPickList
-          v-if="
-            settingStore.wordPracticeType === WordPracticeType.Identify &&
-            data.wrongWords.length === 0 &&
-            settingStore.quickIdentify
-          "
-          :words="data.words"
-          @complete="onWordMarkPickComplete"
-        />
-
-        <div class="mb-50" v-else>
-          <!--        前后单词-->
-          <div
-            class="fixed z-1 top-4 w-full"
-            style="left: calc(50vw + var(--aside-width) / 2 - var(--toolbar-width) / 2); width: var(--toolbar-width)"
-            v-if="settingStore.showNearWord"
-          >
-            <Tooltip :title="`上一个(${settingStore.shortcutKeyMap[ShortcutKey.Previous]})`">
-              <div class="relative z-2 center gap-2 cp float-left" @click="prev" v-if="prevWord">
-                <IconFluentArrowLeft16Regular class="arrow" width="22" />
-                <div class="word">{{ prevWord.word }}</div>
-              </div>
-            </Tooltip>
-
-            <div
-              class="center gap-1 absolute w-full cp"
-              v-if="settingStore.showConflictNotice2"
-              @click="showConflictNotice2 = true"
-            >
-              <IconFluentQuestionCircle20Regular />
-              <span class="">无法输入？</span>
+      <div class="practice-word mb-50">
+        <!--        前后单词-->
+        <div
+          class="fixed z-1 top-4 w-full"
+          style="left: calc(50vw + var(--aside-width) / 2 - var(--toolbar-width) / 2); width: var(--toolbar-width)"
+          v-if="settingStore.showNearWord"
+        >
+          <Tooltip :title="`上一个(${settingStore.shortcutKeyMap[ShortcutKey.Previous]})`">
+            <div class="relative z-2 center gap-2 cp float-left" @click="prev" v-if="prevWord">
+              <IconFluentArrowLeft16Regular class="arrow" width="22" />
+              <div class="word">{{ prevWord.word }}</div>
             </div>
+          </Tooltip>
 
-            <Tooltip :title="`下一个(${settingStore.shortcutKeyMap[ShortcutKey.Next]})`">
-              <div class="relative center gap-2 cp float-right mr-3" @click="next(false)" v-if="nextWord">
-                <div class="word" :class="settingStore.dictation && 'word-shadow'">
-                  {{ nextWord.word }}
-                </div>
-                <IconFluentArrowRight16Regular class="arrow" width="22" />
-              </div>
-            </Tooltip>
+          <div
+            class="center gap-1 absolute w-full cp"
+            v-if="settingStore.showConflictNotice2"
+            @click="showConflictNotice2 = true"
+          >
+            <IconFluentQuestionCircle20Regular />
+            <span class="">无法输入？</span>
           </div>
-          <TypeWord
-            ref="typingRef"
-            :word="word"
-            :question="data.question"
-            @wrong="onTypeWrong"
-            @complete="next"
-            @mastered="toggleWordSimpleWrapper"
-            @know="onWordKnow"
-            @skip="skip"
-            @toggle-simple="toggleWordSimpleWrapper"
-          />
+
+          <Tooltip :title="`下一个(${settingStore.shortcutKeyMap[ShortcutKey.Next]})`">
+            <div class="relative center gap-2 cp float-right mr-3" @click="next(false)" v-if="nextWord">
+              <div class="word" :class="settingStore.dictation && 'word-shadow'">
+                {{ nextWord.word }}
+              </div>
+              <IconFluentArrowRight16Regular class="arrow" width="22" />
+            </div>
+          </Tooltip>
         </div>
+
+        <TypeWord
+          ref="typingRef"
+          :word="word"
+          @wrong="onTypeWrong"
+          @complete="next"
+          @mastered="toggleWordSimpleWrapper"
+          @know="onWordKnow"
+          @skip="skip"
+          @toggle-simple="toggleWordSimpleWrapper"
+        />
       </div>
     </template>
     <template v-slot:panel>

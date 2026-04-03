@@ -2,8 +2,7 @@
 import { usePracticeStore } from '../../stores/practice'
 import { useSettingStore } from '../../stores/setting'
 import type { PracticeData } from '../../types'
-import { BaseButton, BaseIcon } from '@typewords/base'
-import { Tooltip } from '@typewords/base'
+import { BaseIcon, Toast, Tooltip } from '@typewords/base'
 import SettingDialog from '../setting/SettingDialog.vue'
 import VolumeSettingMiniDialog from './VolumeSettingMiniDialog.vue'
 import StageProgress from '../StageProgress.vue'
@@ -25,6 +24,18 @@ const emit = defineEmits<{
 }>()
 
 let practiceData = inject<PracticeData>('practiceData')
+const bumpPracticeTimerActivity = inject<(() => void) | undefined>('bumpPracticeTimerActivity', undefined)
+
+function onTimerRowClick() {
+  if (statStore.timerPaused) {
+    statStore.resumeTimer()
+    bumpPracticeTimerActivity?.()
+    Toast.success('已恢复计时')
+  } else {
+    statStore.pauseTimerManual()
+    Toast.info('已暂停计时')
+  }
+}
 
 function format(val: number, suffix: string = '', check: number = -1) {
   return val === check ? '-' : val + suffix
@@ -184,7 +195,7 @@ const stages = $computed(() => {
 
 <template>
   <div class="footer">
-    <Tooltip :title="`${settingStore.showToolbar ? $t('collapse') : $t('expand')}(${settingStore.shortcutKeyMap[ShortcutKey.ToggleToolbar]})`">
+    <Tooltip :title="settingStore.showToolbar ? $t('collapse') : $t('expand')">
       <IconFluentChevronLeft20Filled
         @click="settingStore.showToolbar = !settingStore.showToolbar"
         class="arrow"
@@ -206,8 +217,16 @@ const stages = $computed(() => {
             <div class="name">{{ status }}</div>
           </div>
           <div class="row">
-            <!--            <div class="num">{{ statStore.spend }}分钟</div>-->
-            <div class="num">{{ Math.floor(statStore.spend / 1000 / 60) }}{{ $t('minutes') }}</div>
+            <Tooltip title="点击可暂停或恢复学习计时">
+              <div class="num cursor-pointer" @click="onTimerRowClick">
+                <template v-if="statStore.timerPaused">
+                  <IconFluentPause20Regular width="18" height="18" class="inline-block align-middle" />
+                </template>
+                <template v-else>
+                  {{ Math.floor(statStore.spend / 1000 / 60) }}{{ $t('minutes') }}
+                </template>
+              </div>
+            </Tooltip>
             <div class="line"></div>
             <div class="name">{{ $t('time') }}</div>
           </div>
@@ -227,8 +246,6 @@ const stages = $computed(() => {
           </div>
         </div>
         <div class="flex gap-2 justify-center items-center" id="toolbar-icons">
-          <!--          <BaseButton>快速批量标记</BaseButton>-->
-
           <SettingDialog type="word" />
 
           <VolumeSettingMiniDialog />
