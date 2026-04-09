@@ -193,7 +193,7 @@ TypeWords 是一个以“英语打字练习”为核心的多端项目：
 关键证据：
 
 - `apps/nuxt/app/layouts/default.vue`
-- `apps/nuxt/app/plugins/init.client.ts`
+- `apps/nuxt/app/plugins/02.init.client.ts`
 - `apps/vscode-web/src/router.ts`
 - `apps/vscode/src/extension.ts`
 
@@ -320,7 +320,7 @@ TypeWords 是一个以“英语打字练习”为核心的多端项目：
 | CF-SYNC-003     | sync     | 同步冲突提示组件组                   | implemented | `packages/core/src/components/dialog/ConflictNotice.vue`      |
 | CF-PLATFORM-001 | platform | PracticeLayout 练习壳层         | implemented | `packages/core/src/components/PracticeLayout.vue`             |
 | CF-PLATFORM-002 | platform | 默认布局初始化链路                   | implemented | `apps/nuxt/app/layouts/default.vue`                           |
-| CF-PLATFORM-003 | platform | init.client 客户端插件           | implemented | `apps/nuxt/app/plugins/init.client.ts`                        |
+| CF-PLATFORM-003 | platform | init.client 客户端插件           | implemented | `apps/nuxt/app/plugins/02.init.client.ts`                        |
 | CF-PLATFORM-004 | platform | vscode-web Nuxt polyfill 层  | implemented | `apps/vscode-web/src/main.ts`                                 |
 | CF-SYNC-004     | sync     | useInit 初始化与订阅同步            | implemented | `packages/core/src/composables/useInit.ts`                    |
 | CF-SYNC-005     | sync     | useDataSyncPersistence 同步引擎 | implemented | `packages/core/src/composables/useDataSyncPersistence.ts`     |
@@ -1034,7 +1034,7 @@ vscodeExt[VscodeExtension] --> vscodeWeb
     "name": "默认布局初始化链路",
     "location": "apps/nuxt/app/layouts/default.vue",
     "entry": ["Nuxt default layout"],
-    "dependencies": ["packages/core/src/composables/useInit.ts", "apps/nuxt/app/plugins/init.client.ts"],
+    "dependencies": ["packages/core/src/composables/useInit.ts", "apps/nuxt/app/plugins/02.init.client.ts"],
     "behavior": "挂载时触发全局初始化、主题应用、导航与错误提示展示。",
     "acceptance": ["页面加载后初始化流程执行并可展示异常状态"],
     "status": "implemented",
@@ -1046,13 +1046,13 @@ vscodeExt[VscodeExtension] --> vscodeWeb
     "layer": "component",
     "module": "platform",
     "name": "init.client 客户端插件",
-    "location": "apps/nuxt/app/plugins/init.client.ts",
+    "location": "apps/nuxt/app/plugins/02.init.client.ts",
     "entry": ["Nuxt client plugin"],
     "dependencies": ["vue-virtual-scroller", "service-worker.js"],
     "behavior": "注入统计脚本、注册 Service Worker、挂载虚拟滚动插件。",
     "acceptance": ["客户端可注册 SW", "生产环境可注入统计资源"],
     "status": "implemented",
-    "evidence": ["apps/nuxt/app/plugins/init.client.ts"],
+    "evidence": ["apps/nuxt/app/plugins/02.init.client.ts"],
     "lastReviewedAt": "2026-03-23"
   },
   {

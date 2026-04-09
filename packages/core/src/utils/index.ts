@@ -51,14 +51,18 @@ export async function checkAndUpgradeSaveDict(val: any) {
         data = val
       }
       if (!data.version) {
-        console.warn('数据缺少版本号，返回默认状态')
-        await saveHashSnapshot('数据缺少版本号-自动备份', '')
+        let currentHash = '词典数据缺少版本号-自动备份'
+        window?.umami?.track('error', currentHash)
+        console.warn(currentHash)
+        await saveHashSnapshot(currentHash, '')
         return defaultState
       }
       let state: any = data.val
       if (typeof state !== 'object') {
-        console.warn('数据格式无效，返回默认状态')
-        await saveHashSnapshot('数据格式无效-自动备份', '')
+        let currentHash1 = '词典数据格式无效-自动备份'
+        console.warn(currentHash1)
+        window?.umami?.track('error', currentHash1)
+        await saveHashSnapshot(currentHash1, '')
         return defaultState
       }
       state.load = false
@@ -91,14 +95,18 @@ export async function checkAndUpgradeSaveDict(val: any) {
           }
           return defaultState
         } catch (upgradeError) {
-          console.error('数据升级失败，返回默认状态', upgradeError)
-          await saveHashSnapshot('数据升级失败-自动备份', '')
+          let currentHash2 = '词典数据升级失败-自动备份'
+          console.error(currentHash2, upgradeError)
+          window?.umami?.track('error', currentHash2 + upgradeError)
+          await saveHashSnapshot(currentHash2, '')
           return defaultState
         }
       }
     } catch (e) {
-      console.error('数据解析异常，返回默认状态', e)
-      await saveHashSnapshot('数据解析异常-自动备份', '')
+      let currentHash3 = '词典数据解析异常-自动备份'
+      console.error(currentHash3, e)
+      window?.umami?.track('error', currentHash3 + e)
+      await saveHashSnapshot(currentHash3, '')
       return defaultState
     }
   }
@@ -175,7 +183,9 @@ export async function checkAndUpgradeSaveSetting(val: any) {
       ;(defaultState as any).__updateLocalData = updateLocalData
       return defaultState
     } catch (e) {
-      await saveHashSnapshot('数据解析异常-自动备份', '')
+      let currentHash = '设置数据解析异常-自动备份'
+      window?.umami?.track('error', currentHash + e)
+      await saveHashSnapshot(currentHash, '')
       return defaultState
     }
   }
