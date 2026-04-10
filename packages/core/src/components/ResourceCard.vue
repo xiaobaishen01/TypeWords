@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import { BaseButton } from '@typewords/base'
-
-interface Resource {
-  name: string
-  description?: string
-  difficulty?: string
-  author?: string
-  features?: string
-  suitable?: string
-  link: string
-}
+import { Resource } from '../types'
 
 defineProps<{
   resource: Resource
@@ -40,7 +31,7 @@ const getDifficultyClass = (difficulty: string) => {
 
 <template>
   <div class="card-white min-h-45 mb-0 flex flex-col justify-between">
-    <div>
+    <div v-if="resource.type !== 'list'">
       <div class="text-xl font-semibold mb-3 text-gray-800 dark:text-gray-100">
         {{ resource.name }}
       </div>
@@ -69,7 +60,39 @@ const getDifficultyClass = (difficulty: string) => {
         </span>
       </div>
     </div>
-    <div class="flex flex-col gap-3">
+    <div class="space-y-2" v-else>
+      <div class=" flex items-start justify-between" v-for="item in resource.children">
+        <div>
+          <div class="text-base font-semibold text-gray-800 dark:text-gray-100">
+            {{ item.name }}
+          </div>
+          <div v-if="item.author" class="text-sm text-gray-600 dark:text-gray-300">
+            <span class="font-medium">{{ $t('author') }}</span
+            >{{ item.author }}
+          </div>
+          <div v-if="item.features" class="text-sm text-gray-600 dark:text-gray-300">
+            <span class="font-medium">🌟 {{ $t('features') }}</span
+            >{{ item.features }}
+          </div>
+          <div v-if="item.suitable" class="text-sm text-gray-600 dark:text-gray-300">
+            <span class="font-medium">📌 {{ $t('suitable_for') }}</span
+            >{{ item.suitable }}
+          </div>
+          <div v-if="item.description" class="text-sm text-gray-600 dark:text-gray-300">
+            {{ item.description }}
+          </div>
+        </div>
+        <span
+          v-if="item.difficulty"
+          class="inline-block px-3 py-1 rounded-full text-xs font-medium text-white"
+          :class="getDifficultyClass(item.difficulty)"
+        >
+          {{ item.difficulty }}
+        </span>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-3" v-if="resource.link">
       <BaseButton type="primary" @click="emit('openLink', resource.link)">
         {{ $t('open_link') }}
       </BaseButton>
