@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { BaseButton, BasePage } from '@typewords/base'
 import ResourceCard from '@typewords/core/components/ResourceCard.vue'
 import { APP_NAME, Origin } from '@typewords/core/config/env.ts'
+import type { Resource } from '@typewords/core'
 
 let route = useRoute()
 let title = APP_NAME + ' 英语学习资源分享'
@@ -15,17 +16,6 @@ useSeoMeta({
   twitterTitle: title,
   twitterDescription: title,
 })
-
-// 类型定义
-interface Resource {
-  name: string
-  description?: string
-  difficulty?: string
-  link: string
-  author?: string
-  features?: string
-  suitable?: string
-}
 
 interface Subcategory {
   name: string
@@ -56,46 +46,64 @@ const categories = ref<Category[]>([
         link: 'https://pan.quark.cn/s/6b12da160020',
       },
       {
-        name: '新概念英语第一册',
-        description: '适合英语初学者',
-        difficulty: '入门',
-        link: 'https://pan.quark.cn/s/0d2ece46983f',
+        type: 'list',
+        children: [
+          {
+            name: '新概念英青少年版',
+            description: '儿童读物',
+            difficulty: '7岁至14岁',
+          },
+          {
+            name: '新概念英语第一册',
+            description: '适合英语初学者',
+            difficulty: '入门',
+          },
+          {
+            name: '新概念英语第二册',
+            description: '基础英语学习，巩固语法和词汇',
+            difficulty: '基础',
+          },
+          {
+            name: '新概念英语第三册',
+            description: '提高英语水平，增强阅读能力',
+            difficulty: '进阶',
+          },
+          {
+            name: '新概念英语第四册',
+            description: '高级英语学习，提升综合能力',
+            difficulty: '高级',
+          },
+        ],
       },
       {
-        name: '新概念英语第二册',
-        description: '基础英语学习，巩固语法和词汇',
-        difficulty: '基础',
-        link: 'https://pan.quark.cn/s/df29bb396728',
-      },
-      {
-        name: '新概念英语第三册',
-        description: '提高英语水平，增强阅读能力',
-        difficulty: '进阶',
-        link: 'https://pan.quark.cn/s/ec39dc7cbe5b',
-      },
-      {
-        name: '新概念英语第四册',
-        description: '高级英语学习，提升综合能力',
-        difficulty: '高级',
-        link: 'https://pan.quark.cn/s/207a2cc8a320',
-      },
-      {
-        name: '新概念英青少年版',
-        description: '儿童读物',
-        difficulty: '7岁至14岁',
-        link: 'https://pan.quark.cn/s/4628b00b39c0',
-      },
-      {
-        name: '新概念英语1-4 教材高清 PDF',
-        description: '仅 1-4 册的教材高清扫描版 PDF',
-        difficulty: '',
-        link: 'https://pan.quark.cn/s/f1e7739ed806',
-      },
-      {
-        name: '新概念讲解视频',
-        description: '多家机构/个人的讲解视频',
-        difficulty: '',
-        link: 'https://pan.quark.cn/s/07e25ee6de9f',
+        type: 'list',
+        children: [
+          {
+            name: '新概念英语1-4 教材高清 PDF',
+            description: '仅 1-4 册的教材高清扫描版 PDF',
+            difficulty: 'PDF',
+          },
+          {
+            name: '新东方新概念1-4册精讲',
+            description: '机构讲解视频',
+            difficulty: '新东方',
+          },
+          {
+            name: '新东方新概念语法精讲',
+            description: '机构讲解视频',
+            difficulty: '新东方',
+          },
+          {
+            name: '沪江新概念英语全套',
+            description: '机构讲解视频',
+            difficulty: '沪江',
+          },
+          {
+            name: '新概念其他讲解视频',
+            description: '多家机构/个人的讲解视频',
+            difficulty: '其他',
+          },
+        ],
       },
     ],
   },
@@ -107,44 +115,74 @@ const categories = ref<Category[]>([
       {
         name: '电视/电影资源合集',
         difficulty: '包含后面所有的内容',
-        link: 'https://pan.quark.cn/s/84ecb30b700b', //159
+        link: 'https://pan.quark.cn/s/544c77960c3d', //187
+        // link: 'https://pan.quark.cn/s/84ecb30b700b', //159
         // link: 'https://pan.quark.cn/s/e9b62b79c48c',
       },
       {
-        name: '老友记',
-        description: '',
-        difficulty: '喜剧/爱情',
-        link: 'https://pan.quark.cn/s/c17770edfa15',
+        type: 'list',
+        children: [
+          {
+            name: '老友记',
+            description: '',
+            difficulty: '喜剧/爱情',
+          },
+          {
+            name: '生活大爆炸',
+            description: '',
+            difficulty: '喜剧/爱情',
+          },
+          {
+            name: '是大臣/是首相',
+            description: '',
+            difficulty: '喜剧/讽刺',
+          },
+          {
+            name: '破产姐妹',
+            description: '',
+            difficulty: '喜剧',
+          },
+          {
+            name: '绝望主妇',
+            description: '',
+            difficulty: '悬疑',
+          },
+          {
+            name: '纸牌屋',
+            description: '',
+            difficulty: '纸牌屋',
+          },
+        ],
       },
       {
-        name: '生活大爆炸',
-        description: '',
-        difficulty: '喜剧/爱情',
-        link: 'https://pan.quark.cn/s/3e66da8ce1c4',
-      },
-      {
-        name: '是大臣/是首相',
-        description: '',
-        difficulty: '喜剧/讽刺',
-        link: 'https://pan.quark.cn/s/2c62ce3e220d',
-      },
-      {
-        name: '破产姐妹',
-        description: '',
-        difficulty: '喜剧',
-        link: 'https://pan.quark.cn/s/018600971998',
-      },
-      {
-        name: '绝望主妇',
-        description: '',
-        difficulty: '悬疑',
-        link: 'https://pan.quark.cn/s/1c67ae200c2e',
-      },
-      {
-        name: '纸牌屋',
-        description: '',
-        difficulty: '纸牌屋',
-        link: 'https://pan.quark.cn/s/5ba146c46180',
+        type: 'list',
+        children: [
+          {
+            name: '实习医生格蕾',
+            description: '',
+            difficulty: '电视剧',
+          },
+          {
+            name: '唐顿庄园',
+            description: '',
+            difficulty: '电视剧',
+          },
+          {
+            name: '破产姐妹',
+            description: '',
+            difficulty: '喜剧',
+          },
+          {
+            name: '王冠',
+            description: '',
+            difficulty: '悬疑',
+          },
+          {
+            name: '经典英文电影大片',
+            description: '',
+            difficulty: '电影',
+          },
+        ],
       },
     ],
   },

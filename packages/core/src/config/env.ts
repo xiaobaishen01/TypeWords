@@ -19,6 +19,7 @@ const map = {
     // RESOURCE_URL: 'https://dicts.2study.top/',
     // RESOURCE_URL: '/',
     RESOURCE_URL: 'https://files.typewords.cc/',
+    LIBS_URL: 'https://libs.typewords.cc/',
   },
 }
 
