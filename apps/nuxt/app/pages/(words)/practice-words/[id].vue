@@ -185,6 +185,7 @@ const onvisibilitychange = async () => {
     if (runtimeStore.globalLoading) return
     runtimeStore.globalLoading = true
     try {
+      //todo 这里如果另一台机器学完了，这里的d可能为空
       const d = await wordPersistence.fetch()
       if (d) {
         taskWords = Object.assign(taskWords, d.taskWords)

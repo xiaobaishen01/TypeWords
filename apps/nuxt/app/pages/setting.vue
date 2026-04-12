@@ -404,7 +404,6 @@ async function onSbFirstSyncChoice(action: 'push_local' | 'pull_remote') {
   if (sbSyncChoiceLoading) return
   sbSyncChoiceLoading = true
   try {
-    debugger
     if (action === 'push_local') {
       let localData = await getExportedData()
       const ok = await dataSyncPersistence.forcePushLocalDataToRemote(localData.val, tempSbInstance)
@@ -674,7 +673,7 @@ function removeSbConfig() {
             <!--          Supabase 设置  -->
             <SettingItem title="Supabase 配置" desc="网站不会上传您的 url 和 key，只保存在浏览器本地(Local storage)">
               <div v-if="sbStatus.status !== 'idle'" class="mt-2 text-sm">
-                <span v-if="sbStatus.status === 'success'">同步状态：成功</span>
+                <span v-if="sbStatus.status === 'success'"  class="text-green">状态：同步正常运行中，数据已同步到云端</span>
                 <span v-else-if="sbStatus.status === 'error'" class="text-red">
                   同步状态：失败{{ sbStatus.statusMessage ? `（${sbStatus.statusMessage}）` : '' }}
                 </span>

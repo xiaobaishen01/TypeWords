@@ -1,10 +1,12 @@
 import { APP_VERSION, AppEnv } from '../config/env'
 import { debounce } from '../utils'
 import { syncSetting } from '../apis'
-import { useBaseStore, useRuntimeStore, useSettingStore, useUserStore } from '../stores'
+import { BaseState, SettingState, useBaseStore, useRuntimeStore, useSettingStore, useUserStore } from '../stores'
 import { Supabase } from '../utils/supabase'
 import { ensureHashGuardBeforeInit, useDataSyncPersistence } from './useDataSyncPersistence'
 import { SyncDataType } from '../types'
+import { SubscriptionCallbackMutation } from 'pinia'
+import type { DebuggerEvent } from 'vue'
 
 let unsub = null
 let unsub2 = null
@@ -73,13 +75,19 @@ export function useInit() {
     document.addEventListener('visibilitychange', onvisibilitychange)
     //用 $subscribe 替代 watch
     unsub = store.$subscribe(
-      debounce(async (mutation, n) => {
-        // 如果正在初始化，不保存数据，避免覆盖
+      debounce(async (mutation, data: BaseState) => {
         if (fetching || !focus || runtimeStore.globalLoading) return
-        console.log('store.$subscribe', mutation, n)
+        if (data._ignoreWatch) {
+          data._ignoreWatch = false
+          return
+        }
+        if (mutation.type === 'direct' && mutation.events?.key === '_ignoreWatch') {
+          return
+        }
+        console.log('store.$subscribe', mutation, data, data._ignoreWatch)
         fetching = true
         try {
-          await dataSync.saveDictState(n)
+          await dataSync.saveDictState(data)
         } finally {
           fetching = false
         }
@@ -87,9 +95,16 @@ export function useInit() {
     )
 
     unsub2 = settingStore.$subscribe(
-      debounce(async (mutation, data) => {
+      debounce(async (mutation: SubscriptionCallbackMutation<SettingState>, data: SettingState) => {
         if (fetching || !focus || runtimeStore.globalLoading) return
-        console.log('settingStore.$subscribe', mutation, data)
+        if (data._ignoreWatch) {
+          data._ignoreWatch = false
+          return
+        }
+        if (mutation.type === 'direct' && mutation.events?.key === '_ignoreWatch') {
+          return
+        }
+        console.log('settingStore.$subscribe', mutation, data, data._ignoreWatch)
         fetching = true
         try {
           await dataSync.saveLocalAndSync(SyncDataType.setting, data)

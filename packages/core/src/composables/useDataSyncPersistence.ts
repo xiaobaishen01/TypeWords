@@ -167,7 +167,6 @@ async function fetchServerDatas(
       .from('typewords_data')
       .select('type, data, updated_at, data_version')
       .in('type', types)
-      .maybeSingle()
     if (error) {
       console.log('sp-error', error)
       Supabase.setStatus('error', error?.message ?? String(error))
@@ -265,6 +264,7 @@ async function applyRemoteDataByType(
       version: row.data_version,
     })
     normalized.load = true
+    normalized._ignoreWatch = true
     settingStore.setState(normalized)
     await persistLocalState(SyncDataType.setting, normalized, row.updated_at ?? now)
     return
@@ -275,6 +275,7 @@ async function applyRemoteDataByType(
       version: row.data_version,
     })
     normalized.load = true
+    normalized._ignoreWatch = true
     applyDictData(store, normalized)
     await persistLocalState(SyncDataType.dict, normalized, row.updated_at ?? now)
     return

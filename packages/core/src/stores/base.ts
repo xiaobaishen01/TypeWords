@@ -21,6 +21,7 @@ export interface BaseState {
   }
   dictListVersion: number
   fsrsData: Record<string, Card>
+  _ignoreWatch: boolean //忽略监听，避免重复保存和上传
 }
 
 export const getDefaultBaseState = (): BaseState => ({
@@ -88,6 +89,7 @@ export const getDefaultBaseState = (): BaseState => ({
   },
   dictListVersion: 1,
   fsrsData: {},
+  _ignoreWatch: false,
 })
 
 export const useBaseStore = defineStore('base', {
@@ -179,27 +181,30 @@ export const useBaseStore = defineStore('base', {
     async init(): Promise<SaveData | null> {
       return new Promise(async resolve => {
         try {
-          let configStr: string = await get(SAVE_DICT_KEY.key)
-          let result = await parseJsonStr(configStr, checkAndUpgradeSaveDict)
-          if (AppEnv.IS_OFFICIAL) {
-            let r = await dictListVersion()
-            if (r.success) {
-              result.val.dictListVersion = r.data
+          let jsonStr: string = await get(SAVE_DICT_KEY.key)
+          if (jsonStr) {
+            let result = await parseJsonStr(jsonStr, checkAndUpgradeSaveDict)
+            if (AppEnv.IS_OFFICIAL) {
+              let r = await dictListVersion()
+              if (r.success) {
+                result.val.dictListVersion = r.data
+              }
             }
-          }
-          if (AppEnv.CAN_REQUEST) {
-            let res = await myDictList()
-            if (res.success) {
-              //只保留未同步的
-              result.val.word.bookList = result.val.word.bookList.filter(v => !v.sync)
-              result.val.article.bookList = result.val.article.bookList.filter(v => !v.sync)
-              //这里看看是否要 shallowReactive
-              Object.assign(result.val, res.data)
+            if (AppEnv.CAN_REQUEST) {
+              let res = await myDictList()
+              if (res.success) {
+                //只保留未同步的
+                result.val.word.bookList = result.val.word.bookList.filter(v => !v.sync)
+                result.val.article.bookList = result.val.article.bookList.filter(v => !v.sync)
+                //这里看看是否要 shallowReactive
+                Object.assign(result.val, res.data)
+              }
             }
+            // console.log('data', data)
+            this.setState(result.val)
+            resolve(result)
           }
-          // console.log('data', data)
-          this.setState(result.val)
-          resolve(result)
+          resolve(null)
         } catch (e) {
           console.error('读取本地dict数据失败', e)
           resolve(null)

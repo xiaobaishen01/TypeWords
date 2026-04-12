@@ -68,6 +68,7 @@ export interface SettingState {
 
   identifyMethod: IdentifyMethod
   quickIdentify: boolean //快速标记
+  _ignoreWatch: boolean //忽略监听，避免重复保存和上传
 }
 
 export const getDefaultSettingState = (): SettingState => ({
@@ -144,6 +145,7 @@ export const getDefaultSettingState = (): SettingState => ({
 
   identifyMethod: IdentifyMethod.SelfAssessment,
   quickIdentify: false,
+  _ignoreWatch: false,
 })
 
 export const useSettingStore = defineStore('setting', {
@@ -157,25 +159,28 @@ export const useSettingStore = defineStore('setting', {
     async init(): Promise<SaveData | null> {
       return new Promise(async resolve => {
         try {
-          let configStr = await get(SAVE_SETTING_KEY.key)
-          let result = await parseJsonStr(configStr, checkAndUpgradeSaveSetting)
+          let jsonStr = await get(SAVE_SETTING_KEY.key)
+          if (jsonStr) {
+            let result = await parseJsonStr(jsonStr, checkAndUpgradeSaveSetting)
 
-          //如果升级了，那么要保持本地比线上新，不然会被覆盖
-          const shouldRefreshUpdatedAt = (result.val as any)?.__updateLocalData ?? false
-          delete (result.val as any)?.__updateLocalData
-          if (shouldRefreshUpdatedAt) {
-            await set(SAVE_SETTING_KEY.key, JSON.stringify(result))
-          }
-
-          if (AppEnv.CAN_REQUEST) {
-            let res = await getSetting()
-            if (res.success) {
-              Object.assign(result.val, res.data)
+            //如果升级了，那么要保持本地比线上新，不然会被覆盖
+            const shouldRefreshUpdatedAt = (result.val as any)?.__updateLocalData ?? false
+            delete (result.val as any)?.__updateLocalData
+            if (shouldRefreshUpdatedAt) {
+              await set(SAVE_SETTING_KEY.key, JSON.stringify(result))
             }
-          }
 
-          this.setState({ ...result.val, load: true })
-          resolve(result)
+            if (AppEnv.CAN_REQUEST) {
+              let res = await getSetting()
+              if (res.success) {
+                Object.assign(result.val, res.data)
+              }
+            }
+
+            this.setState({ ...result.val, load: true })
+            resolve(result)
+          }
+          resolve(null)
         } catch (e) {
           console.error('读取本地设置数据失败', e)
           resolve(null)

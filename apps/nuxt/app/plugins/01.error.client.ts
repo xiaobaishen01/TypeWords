@@ -5,10 +5,10 @@ export default defineNuxtPlugin(nuxtApp => {
   }
 
   // 2. Promise 错误
-  window.addEventListener('unhandledrejection', e => {
-    e.preventDefault() // 阻止继续传播
-    reportError({ type: 'promise', promiseErr: e.reason })
-  })
+  // window.addEventListener('unhandledrejection', e => {
+  //   e.preventDefault() // 阻止继续传播
+  //   reportError({ type: 'promise', promiseErr: e.reason })
+  // })
 
   // 3. 资源加载错误
   window.addEventListener(
