@@ -14,6 +14,8 @@ export function useSound(audioSrcList?: string[], audioFileLength?: number) {
 
   //这里同一个音频弄好几份是为了快速打字是，可同时发音
   function setAudio(audioSrcList2: string[], audioFileLength2?: number) {
+    //@ts-ignore
+    if (import.meta.server) return
     if (audioFileLength2) audioLength = audioFileLength2
     audioList = []
     for (let i = 0; i < audioLength; i++) {

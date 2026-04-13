@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SoundFileOptions } from '../../config/env.ts'
+import { ENV, SoundFileOptions } from '../../config/env.ts'
 import { getAudioFileUrl, usePlayAudio } from '../../hooks/sound.ts'
 import { Option, Select, Slider, Switch, Textarea, VolumeIcon } from '@typewords/base'
 import SettingItem from './SettingItem.vue'
@@ -67,7 +67,7 @@ const simpleWords = $computed({
         <Option v-for="item in SoundFileOptions" :key="item.value" :label="item.label" :value="item.value">
           <div class="flex justify-between items-center w-full">
             <span>{{ item.label }}</span>
-            <VolumeIcon :time="100" @click="usePlayAudio(getAudioFileUrl(item.value)[0])" />
+            <VolumeIcon :time="100" @click="usePlayAudio(ENV.RESOURCE_URL + getAudioFileUrl(item.value)[0])" />
           </div>
         </Option>
       </Select>
