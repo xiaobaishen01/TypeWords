@@ -208,11 +208,13 @@ function unknown(e) {
   onTyping(e)
 }
 
+let selectIndex = $ref(-1)
 let completeSelect = false
 function select(e, index: number) {
   if (completeSelect) return
   if (isWordTest) {
     completeSelect = true
+    selectIndex = index
     if (index == props?.question?.correctIndex) {
       input = props.word.word
       playCorrect()
@@ -747,7 +749,19 @@ const isCollect = $computed(() => isWordCollect(props.word))
       </div>
 
       <div v-if="isWordTest && !showWordResult" class="flex gap-8 flex-col mt-16 mb-8 w-full">
-        <div v-for="(value, index) in question?.candidates ?? []" class="flex gap-2 min-h-20">
+        <div 
+          v-for="(value, index) in question?.candidates ?? []" 
+          class="flex gap-2 min-h-20" 
+          :class="{
+            'text-green-600': 
+              completeSelect && 
+              index === props?.question?.correctIndex,
+            'text-red-600':
+              completeSelect && 
+              index !== props?.question?.correctIndex &&
+              index === selectIndex,
+          }"
+        >
           <BaseButton
             :keyboard="`${$t('shortcut')}(${settingStore.shortcutKeyMap[[ShortcutKey.ChooseA, ShortcutKey.ChooseB, ShortcutKey.ChooseC, ShortcutKey.ChooseD][index]]})`"
             @click="e => select(e, index)"

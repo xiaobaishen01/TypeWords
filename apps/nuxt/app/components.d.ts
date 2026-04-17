@@ -7,7 +7,7 @@
 // Read more: https://github.com/vuejs/core/pull/3399
 import { GlobalComponents } from 'vue'
 
-export {}
+export { }
 
 /* prettier-ignore */
 declare module 'vue' {
