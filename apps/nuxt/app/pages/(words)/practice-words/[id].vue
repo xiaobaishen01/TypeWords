@@ -1042,7 +1042,7 @@ useEvents([
 
             <GroupList
               @click="jumpToGroup"
-              v-if="taskWords.new.length && settingStore.wordPracticeMode === WordPracticeMode.Free"
+              v-if="taskWords.new.length && settingStore.wordPracticeMode !== WordPracticeMode.Shuffle"
             />
             <BaseIcon
               v-if="
