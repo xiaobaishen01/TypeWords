@@ -28,13 +28,13 @@ export function useSound(audioSrcList?: string[], audioFileLength?: number) {
   function play(volume: number = 100) {
     index.value++
     if (audioList.value.length > 1 && audioList.value.length !== audioLength.value) {
-      let htmlAudioElement = audioList[index.value % audioList.value.length]
+      let htmlAudioElement = audioList.value[index.value % audioList.value.length]
       if (htmlAudioElement) {
         htmlAudioElement.volume = volume / 100
         htmlAudioElement.play()
       }
     } else {
-      let htmlAudioElement1 = audioList[index.value % audioLength.value]
+      let htmlAudioElement1 = audioList.value[index.value % audioLength.value]
       if (htmlAudioElement1) {
         htmlAudioElement1.volume = volume / 100
         htmlAudioElement1.play()
