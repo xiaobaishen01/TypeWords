@@ -1109,7 +1109,51 @@ useEvents([
       </Panel>
     </template>
     <template v-slot:footer>
-      <Footer @skipStep="skipStep" />
+      <div class="footer-container p-4">
+        <div
+          class="flex justify-between p-1 items-center border-item-solid border-green-700/20 rounded-t-xl mx-2 text-gray-600 text-sm"
+        >
+          <div>
+            <IconFluentChevronLeft20Filled class="transform-rotate-180 font-size-2.5 mr-2" />
+            <span>4 File</span>
+          </div>
+          <div class="gap-4 flex items-center">
+            <span>Undo</span>
+            <span>Keep</span>
+            <span class="bg-[#434c5e] color-white rounded-md px-2 py-0.5">Review</span>
+          </div>
+        </div>
+        <div class="border-item-solid rounded-lg p-2 items-center bg-[var(--bg-bottom)]">
+          <textarea
+            type="text"
+            placeholder="Plan @ for contexts, / for commands"
+            class="w-full resize-none outline-none bg-transparent border-none h-5 font-family font-bold placeholder-gray-600"
+          ></textarea>
+          <div class="flex justify-between mt-2">
+            <div class="flex gap-space color-gray-500">
+              <div class="flex items-center gap-1 rounded-full bg-[var(--bg-bottom2)] px-2">
+                <IconPhInfinityLight class="font-size-4" />
+                <span class="text-sm color-gray-400">Agent</span>
+                <IconFluentChevronLeft20Filled class="-transform-rotate-90 font-size-2.5" />
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="text-sm color-gray-400">Auto</span>
+                <IconFluentChevronLeft20Filled class="-transform-rotate-90 font-size-2.5" />
+              </div>
+            </div>
+            <div class="flex items-center gap-3 color-gray-600">
+              <div class="relative scale-80 flex items-center">
+                <IconMdiLightCircle class="scale-130 color-gray-700/40" />
+                <IconAntDesignLoadingOutlined class="absolute left-0 top-0 color-gray-500" />
+              </div>
+              <IconFluentGlobe20Regular />
+              <IconF7Photo />
+              <IconFamiconsMicCircleSharp class="text-2xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <Footer @skipStep="skipStep" v-if="settingStore.showToolbar" />
     </template>
   </PracticeLayout>
   <Statistics v-model="isComplete" />
