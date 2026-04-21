@@ -4,7 +4,7 @@
   "description": "TypeWords Vscode Extension",
   "repository":"https://github.com/zyronon/TypeWords",
   "publisher":"TypeWords",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "engines": {
     "vscode": "^1.101.0"
   },

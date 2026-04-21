@@ -4,6 +4,43 @@ import { ref } from 'vue'
 
 import { ENV, PronunciationApi, SoundFileOptions } from '../config/env'
 
+/**
+ * 获取当前浏览器的 OS+浏览器 组合 key，用于 ttsVoiceMap 的索引
+ * 返回如 "mac+chrome" / "windows+edge" / "ios+safari" 等固定组合
+ */
+export function getBrowserKey(): string {
+  if (typeof navigator === 'undefined') return 'unknown+unknown'
+  const ua = navigator.userAgent
+
+  let os = 'unknown'
+  if (/iPad|iPhone|iPod/.test(ua)) {
+    os = 'ios'
+  } else if (/Android/.test(ua)) {
+    os = 'android'
+  } else if (/Macintosh|Mac OS X/.test(ua)) {
+    os = 'mac'
+  } else if (/Windows/.test(ua)) {
+    os = 'windows'
+  } else if (/Linux/.test(ua)) {
+    os = 'linux'
+  }
+
+  let browser = 'unknown'
+  if (/Edg\//.test(ua)) {
+    browser = 'edge'
+  } else if (/OPR\/|Opera/.test(ua)) {
+    browser = 'opera'
+  } else if (/Chrome\//.test(ua)) {
+    browser = 'chrome'
+  } else if (/Firefox\//.test(ua)) {
+    browser = 'firefox'
+  } else if (/Safari\//.test(ua)) {
+    browser = 'safari'
+  }
+
+  return `${os}+${browser}`
+}
+
 export function useSound(audioSrcList?: string[], audioFileLength?: number) {
   let audioList = ref<HTMLAudioElement[]>([])
   let audioLength = ref(1)
@@ -140,9 +177,21 @@ export function useTTsPlayAudio() {
     msg.pitch = 1
     msg.lang = 'en-US'
     getVoicesAsync().then((voices: any[]) => {
+      // 优先使用用户在当前浏览器配置的声色
+      const browserKey = getBrowserKey()
+      const savedVoiceName = settingStore?.ttsVoiceMap?.find(v => v.key === browserKey)?.voice
+      if (savedVoiceName) {
+        const savedVoice = voices.find(v => v.name === savedVoiceName)
+        if (savedVoice) {
+          msg.voice = savedVoice
+          speechSynthesis.speak(msg)
+          return
+        }
+      }
+      // 回退：优先找 Emma / US，否则取第一个英文声色
       let voiceList = voices.filter(v => v.lang === 'en-US')
       if (voiceList && voiceList.length) {
-        msg.voice = voiceList.find(v => v.name.includes('Emma') || v.name.includes('US')) ?? voiceList[0]
+        msg.voice = voiceList.find(v => v.name.includes('US') || v.name.includes('Emma')) ?? voiceList[0]
       }
       speechSynthesis.speak(msg)
     })

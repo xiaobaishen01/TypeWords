@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ENV, SoundFileOptions } from '../../config/env.ts'
-import { getAudioFileUrl, usePlayAudio } from '../../hooks/sound.ts'
-import { Option, Select, Slider, Switch, Textarea, VolumeIcon } from '@typewords/base'
+import { Switch, Textarea } from '@typewords/base'
 import SettingItem from './SettingItem.vue'
 import { useSettingStore } from '../../stores/setting.ts'
 import { useBaseStore } from '../../stores/base.ts'
@@ -46,35 +44,6 @@ const simpleWords = $computed({
       />
     </SettingItem>
 
-    <!--          音效-->
-    <!--          音效-->
-    <!--          音效-->
-    <div class="line"></div>
-    <SettingItem :main-title="$t('sound_effect')" />
-    <SettingItem :title="$t('pronunciation_accent')" :desc="$t('pronunciation_accent_desc')">
-      <Select v-model="settingStore.soundType" :placeholder="$t('please_select')" class="w-50!">
-        <Option :label="$t('us_accent')" value="us" />
-        <Option :label="$t('uk_accent')" value="uk" />
-      </Select>
-    </SettingItem>
-
-    <div class="line"></div>
-    <SettingItem :title="$t('keyboard_sound')">
-      <Switch v-model="settingStore.keyboardSound" />
-    </SettingItem>
-    <SettingItem :title="$t('keyboard_sound_effect')">
-      <Select v-model="settingStore.keyboardSoundFile" :placeholder="$t('please_select')" class="w-50!">
-        <Option v-for="item in SoundFileOptions" :key="item.value" :label="item.label" :value="item.value">
-          <div class="flex justify-between items-center w-full">
-            <span>{{ item.label }}</span>
-            <VolumeIcon :time="100" @click="usePlayAudio(ENV.RESOURCE_URL + getAudioFileUrl(item.value)[0])" />
-          </div>
-        </Option>
-      </Select>
-    </SettingItem>
-    <SettingItem :title="$t('volume')">
-      <Slider v-model="settingStore.keyboardSoundVolume" showText showValue unit="%" />
-    </SettingItem>
   </div>
 </template>
 

@@ -42,6 +42,7 @@ import CommonSetting from '@typewords/core/components/setting/CommonSetting.vue'
 import FsrsSetting from '@typewords/core/components/setting/FsrsSetting.vue'
 import ArticleSetting from '@typewords/core/components/setting/ArticleSetting.vue'
 import WordSetting from '@typewords/core/components/setting/WordSetting.vue'
+import SoundSetting from '@typewords/core/components/setting/SoundSetting.vue'
 import { PRACTICE_ARTICLE_CACHE, PRACTICE_WORD_CACHE } from '@typewords/core/utils/cache'
 import { useDataSyncPersistence } from '@typewords/core/composables/useDataSyncPersistence'
 import SettingItem from '@typewords/core/components/setting/SettingItem.vue'
@@ -579,6 +580,10 @@ function removeSbConfig() {
               <IconFluentBookLetter20Regular />
               <span>{{ $t('article_settings') }}</span>
             </div>
+            <div class="tab" :class="tabIndex === 4 && 'active'" @click="tabIndex = 4">
+              <IconClarityVolumeUpLine />
+              <span>音效设置</span>
+            </div>
             <div class="tab" :class="tabIndex === 5 && 'active'" @click="tabIndex = 5">
               <IconFluentDatabasePerson20Regular />
               <span>{{ $t('data_management') }}</span>
@@ -629,6 +634,7 @@ function removeSbConfig() {
           <FsrsSetting v-if="tabIndex === 1" />
           <WordSetting v-if="tabIndex === 2" />
           <ArticleSetting v-if="tabIndex === 3" />
+          <SoundSetting v-if="tabIndex === 4" />
 
           <div v-if="tabIndex === 5">
             <!--            导出数据-->

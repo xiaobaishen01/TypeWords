@@ -137,13 +137,13 @@ html.dark {
     color: var(--color-main-text);
 
     &.success {
-      background: rgba(103, 194, 58, 0.1);
+      background: rgb(42, 50, 40);
       border-color: #67c23a;
       color: #67c23a;
     }
 
     &.warning {
-      background: rgba(230, 162, 60, 0.1);
+      background: rgb(51, 47, 40);
       border-color: #e6a23c;
       color: #e6a23c;
     }
@@ -155,7 +155,7 @@ html.dark {
     }
 
     &.error {
-      background: rgba(245, 108, 108, 0.1);
+      background: #342a2b;
       border-color: #f56c6c;
       color: #f56c6c;
     }

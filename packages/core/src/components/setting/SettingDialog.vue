@@ -4,18 +4,33 @@ import { BaseIcon } from '@typewords/base'
 import CommonSetting from './CommonSetting.vue'
 import WordSetting from './WordSetting.vue'
 import ArticleSetting from './ArticleSetting.vue'
+import SoundSetting from './SoundSetting.vue'
 import { useDisableEventListener } from '../../hooks/event.ts'
 
 const Dialog = defineAsyncComponent(() => import('@typewords/base/Dialog'))
 
 const props = defineProps<{
   type: 'article' | 'word'
+  /** 外部传入时直接打开到指定 tab（3 = 音效设置） */
+  initialTab?: number
 }>()
 
-const tabIndex = $ref(props.type === 'word' ? 1 : 2)
+const emit = defineEmits<{
+  (e: 'open'): void
+}>()
+
+let tabIndex = $ref(props.type === 'word' ? 1 : 2)
 let show = $ref(false)
 
 useDisableEventListener(() => show)
+
+/** 供外部调用：打开弹框并跳转到音效设置 tab */
+function openSoundTab() {
+  tabIndex = 3
+  show = true
+}
+
+defineExpose({ openSoundTab })
 </script>
 
 <template>
@@ -36,12 +51,17 @@ useDisableEventListener(() => show)
               <IconFluentSettings20Regular width="20" />
               <span>{{ $t('general_settings') }}</span>
             </div>
+            <div class="tab" :class="tabIndex === 3 && 'active'" @click="tabIndex = 3">
+              <IconClarityVolumeUpLine width="20" />
+              <span>音效设置</span>
+            </div>
           </div>
         </div>
         <div class="content">
           <CommonSetting v-if="tabIndex === 0" />
           <WordSetting v-if="tabIndex === 1" />
           <ArticleSetting v-if="tabIndex === 2" />
+          <SoundSetting v-if="tabIndex === 3" />
         </div>
       </div>
     </div>
@@ -50,7 +70,7 @@ useDisableEventListener(() => show)
     :title="$t('settings')"
     @click="
       show = true;
-      tabIndex = props.type === 'word' ? 1 : 2
+      tabIndex = props.initialTab ?? (props.type === 'word' ? 1 : 2)
     "
   >
     <IconFluentSettings20Regular />

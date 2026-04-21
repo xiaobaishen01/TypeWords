@@ -1,6 +1,14 @@
 <script setup lang="ts">
 let logList = [
   {
+    date: '2026/04/21',
+    content: '新增 TTS 音色选项',
+  }, 
+  {
+    date: '2026/04/14',
+    content: '新首页',
+  }, 
+  {
     date: '2026/04/05',
     content: '新增时间暂停功能',
   },

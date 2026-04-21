@@ -2,7 +2,7 @@
 import type { Question, Word } from '../../types'
 import { getDefaultWord, IdentifyMethod, ShortcutKey, WordPracticeType } from '../../types'
 import { useBaseStore, useSettingStore } from '../../stores'
-import { usePlayBeep, usePlayCorrect, usePlayKeyboardAudio, usePlayWordAudio, useTTsPlayAudio } from '../../hooks/sound'
+import { getBrowserKey, usePlayBeep, usePlayCorrect, usePlayKeyboardAudio, usePlayWordAudio, useTTsPlayAudio } from '../../hooks/sound'
 import { emitter, EventKey, useEventsByWatch } from '../../utils/eventBus'
 import { onMounted, onUnmounted, watch } from 'vue'
 import SentenceHightLightWord from './SentenceHightLightWord.vue'
@@ -56,6 +56,21 @@ const playCorrect = usePlayCorrect()
 const playKeyboardAudio = usePlayKeyboardAudio()
 const playWordAudio = usePlayWordAudio()
 const ttsPlayAudio = useTTsPlayAudio()
+
+// 例句发音未配置声色时的一次性引导提示（每次页面加载只提示一次）
+let ttsVoiceHintShown = false
+function playTtsWithGuide(text: string) {
+  if (!ttsVoiceHintShown) {
+    const browserKey = getBrowserKey()
+    const hasVoice = settingStore.ttsVoiceMap?.some(v => v.key === browserKey && v.voice)
+    if (!hasVoice) {
+      ttsVoiceHintShown = true
+      Toast.warning('例句默认使用浏览器内置 TTS 发音，若无声请前往「设置 → 音效设置 → TTS 声色」选择可用声色', { duration: 15000 })
+    }
+  }
+  ttsPlayAudio(text)
+}
+
 const volumeIconRef: any = $ref()
 const sentenceVolumeIconsRefs: any = $ref([])
 const typingWordRef = $ref<HTMLDivElement>()
@@ -841,7 +856,7 @@ const isCollect = $computed(() => isWordCollect(props.word))
               <VolumeIcon
                 :title="`发音`"
                 :simple="false"
-                :cb="() => ttsPlayAudio(item.c)"
+                :cb="() => playTtsWithGuide(item.c)"
                 ref="sentenceVolumeIconsRefs"
               />
             </div>

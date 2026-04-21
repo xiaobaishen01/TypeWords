@@ -50,26 +50,6 @@ const settingStore = useSettingStore()
       <Switch v-model="settingStore.quickIdentify" />
     </SettingItem>
 
-    <!--          发音-->
-    <div class="line"></div>
-    <SettingItem :mainTitle="$t('sound_effect')" />
-    <SettingItem :title="$t('word_auto_pronunciation')">
-      <Switch v-model="settingStore.wordSound" />
-    </SettingItem>
-    <SettingItem :title="$t('volume')">
-      <Slider v-model="settingStore.wordSoundVolume" showText showValue unit="%" />
-    </SettingItem>
-    <SettingItem :title="$t('speed')">
-      <Slider v-model="settingStore.wordSoundSpeed" :step="0.1" :min="0.5" :max="3" showText showValue />
-    </SettingItem>
-    <div class="line"></div>
-    <SettingItem :title="$t('effect_sound')">
-      <Switch v-model="settingStore.effectSound" />
-    </SettingItem>
-    <SettingItem :title="$t('volume')">
-      <Slider v-model="settingStore.effectSoundVolume" showText showValue unit="%" />
-    </SettingItem>
-
     <!--          自动切换-->
     <div class="line"></div>
     <SettingItem :mainTitle="$t('auto_switch')" />
